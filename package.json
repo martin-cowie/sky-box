@@ -1,0 +1,23 @@
+{
+  "name": "sky-box",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "node-ssdp": "^4.0.0",
+    "typeof-arguments": "^5.1.1",
+    "xmldom": "^0.3.0",
+    "xpath": "0.0.27"
+  },
+  "devDependencies": {
+    "electron": "^8.1.1"
+  }
+}

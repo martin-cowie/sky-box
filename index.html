@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+    <!-- https://electronjs.org/docs/tutorial/security#csp-meta-tag -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
+
+    <style>
+      #epgTable {
+        width: 100%;
+        overflow-x:auto
+      }
+
+      #epgTable tr:nth-child(even) {
+        background-color: #f2f2f2;
+      }
+
+      tr.notViewed {
+        background-color: #c9fdc9;
+      }
+    </style>
+  </head>
+  <body>
+    <table id="epgTable" style="visibility: collapse;">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Description</th>
+          <th>Channel</th>
+          <th>Recorded</th>
+          <th>Duration</th>
+          <th>Genre</th>
+        </tr>
+      </thead>
+
+      <!-- FIXME: how'd I do this in the Sales Orchestrator? -->
+      <tbody id="epgTableBody"></tbody>
+
+    </table>
+  </body>
+
+  <!-- You can also require other files to run in this process -->
+  <script src="./renderer.js" type="module"></script>
+</html>
