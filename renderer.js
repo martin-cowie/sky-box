@@ -1,13 +1,11 @@
-//TODO: 
-// make table sortable, and groupable on series/genre
-// list summary of total and unwatched durations
-
+//TODO: make table sortable, and groupable on series/genre
 
 const {Client} = require('node-ssdp');
 const axios = require('axios').default;
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
 const type = require('typeof-arguments');
+const moment = require('moment');
 
 import {Item} from './Item.js'
 import {decodeXml} from './Common.js';
@@ -22,9 +20,9 @@ const BROWSE_ACTION = "\"urn:schemas-nds-com:service:SkyBrowse:2#Browse\"";
 
 /**
  * Build an XML request.
- * @param {Number} objectID 
- * @param {Number} startIndex 
- * @param {Number} requestCount 
+ * @param {Number} objectID
+ * @param {Number} startIndex
+ * @param {Number} requestCount
  */
 function buildRequest(objectID, startIndex, requestCount) {
     var result = document.implementation.createDocument("", "", null);
@@ -78,9 +76,9 @@ async function fetchAllItems(postURL) {
 }
 
 /**
- * 
- * @param {URL} postURL 
- * @param {Number} startIndex 
+ *
+ * @param {URL} postURL
+ * @param {Number} startIndex
  * @returns tuple [Array of Items, total number of items matching]
  */
 async function fetchItems(postURL, startIndex) {
@@ -89,8 +87,8 @@ async function fetchItems(postURL, startIndex) {
     //-------------------------------
     // Compose & send the request
 
-    const objectID = 3; // FIXME: magic number
-    const requestCount = 25; 
+    const objectID = 3; // FIXME: resolve this magic number
+    const requestCount = 25;
 
     const request = buildRequest(objectID, startIndex, requestCount);
     console.debug(`XML request `, request);
@@ -111,7 +109,7 @@ async function fetchItems(postURL, startIndex) {
         's': SOAP_URL,
         'u': SKY_BROWSE_URN
     });
-    
+
     const responseDoc = new dom().parseFromString(response.data);
     const contentNodes = select(RESULT_TEXT, responseDoc);
     const totalMatchesNodes = select(TOTAL_MATCHES_TEXT, responseDoc);
@@ -127,36 +125,25 @@ async function fetchItems(postURL, startIndex) {
     return [items, totalMatches];
 }
 
-function populateTable(tableElem, bodyElem, items) {
-    type(arguments, [HTMLTableElement, HTMLTableSectionElement, Array]);
+function populateTable(tableElem, items) {
+    type(arguments, [HTMLTableElement, Array]);
 
-    function toRow(item) {
-        type(arguments, [Item]);
+    const newHeader = document.createElement('thead');
+    Item.createHeaders(newHeader);
+    tableElem.tHead.replaceWith(newHeader);
 
-        const row = bodyElem.insertRow();
-        if (!item.viewed) {
-            row.classList.add('notViewed');
-        }
+    const newBody = document.createElement('tbody');
+    items.forEach(item => item.toRows(newBody));
+    tableElem.tBodies[0].replaceWith(newBody);
 
-        const createCell = (text) => {
-            const cell = row.insertCell();
-            cell.innerText = text;
-            return cell;
-        };
-
-        //TODO: possibly encapsulate this, and the header inside Item.js
-        createCell(item.title);
-        createCell(item.description);
-        createCell(item.channel);
-        createCell(item.recordedStartTime);
-        createCell(item.recordedDuration);
-        createCell(item.genre);
-
-        return row;
-    }
-
-    items.forEach(item => toRow(item));
     tableElem.style.visibility = 'visible';
+}
+
+function populateSummary(summaryElem, items) {
+    const totalDuration = moment.duration(items.reduce((acc, item) => acc + item.recordedDuration, 0), 'seconds');
+    const totalUnwatchedDuration = moment.duration(items.reduce((acc, item) => item.viewed ? acc : acc + item.recordedDuration, 0), 'seconds');
+
+    summaryElem.innerText = `You have ${totalDuration.humanize()} of recordings, of which ${totalUnwatchedDuration.humanize()} is unwatched.`
 }
 
 //TODO: Abstract this into a SkyPlusFinder
@@ -180,10 +167,8 @@ ssdp.on('response', (headers, code, rinfo) => {
     }).then(items => {
         console.log(items);
 
-        populateTable(
-            document.getElementById("epgTable"), 
-            document.getElementById("epgTableBody"),
-            items);
+        populateTable(document.getElementById("epgTable"), items);
+        populateSummary(document.getElementById("footer"), items);
     })
     .catch(err => {
         console.error(`Cannot GET ${location}`, err);
@@ -195,4 +180,3 @@ ssdp.search(SKY_BROWSE_URN);
 // setInterval(function() {
 //     ssdp.search(SKY_BROWSE_URN);
 // }, 5_000);
-  

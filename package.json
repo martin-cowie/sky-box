@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.2",
+    "moment": "^2.24.0",
     "node-ssdp": "^4.0.0",
     "typeof-arguments": "^5.1.1",
     "xmldom": "^0.3.0",

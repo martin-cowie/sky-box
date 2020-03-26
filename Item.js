@@ -1,9 +1,10 @@
 const type = require('typeof-arguments');
+const moment = require('moment');
 
 /**
  * Parse the not-quite-ISO standard period/duration format that Sky uses.
  * e.g. `P0D01:03:57` for 1hour, 3mins and 57sec
- * @param {String} str 
+ * @param {String} str
  * @returns the number of seconds of the duration
  */
 function parseDuration(str) {
@@ -46,9 +47,47 @@ export class Item {
         this.genre = genre;
     }
 
+    toRows(tbody) {
+        type(arguments, [HTMLTableSectionElement]);
+
+        const row = tbody.insertRow();
+        if (!this.viewed) {
+            row.classList.add('notViewed');
+        }
+        const descriptionRow = tbody.insertRow();
+        descriptionRow.classList.add('description');
+
+        const createCell = (text) => {
+            row.insertCell().innerText = text;
+        };
+
+        [this.title, this.channel,
+            moment(this.recordedStartTime).format('dddd, YYYY-MM-DD'),
+            moment.duration(this.recordedDuration, 'seconds').humanize(),
+            this.genre].forEach(v => createCell(v));
+
+        const descriptionCell = descriptionRow.insertCell();
+        descriptionCell.innerText = this.description;
+        descriptionCell.colSpan = 5;
+    }
+
+    static createHeaders(thead) {
+        type(arguments, [HTMLTableSectionElement]);
+
+        const row = thead.insertRow();
+        const createCell = (text) => {
+            const th = document.createElement('th');
+            th.innerText = text;
+            row.appendChild(th);
+        };
+
+        ['Title', 'Channel', 'Recorded','Duration','Genre']
+            .forEach(n => createCell(n));
+}
+
     /**
      * Factory method. Build an Item from the given XML
-     * @param {Element} itemElement 
+     * @param {Element} itemElement
      */
     static from(itemElement) {
         function textOfNamedElement(name) {
@@ -56,8 +95,12 @@ export class Item {
             return elementZero?.textContent;
         }
 
-        if (itemElement.getElementsByTagName('upnp:recordedStartDateTime').length == 0) {
-            // This has not been recorded yet
+        const hasElement = (tag) => {
+            return itemElement.getElementsByTagName(tag).length > 0;
+        }
+
+        if (!(hasElement('upnp:recordedStartDateTime') && hasElement('upnp:recordedDuration'))) {
+            // Sign that this has not been recorded yet
             return null;
         }
 
@@ -66,7 +109,6 @@ export class Item {
         const description = textOfNamedElement('dc:description');
         const viewed = Number(textOfNamedElement('vx:X_isViewed')) ? true : false ;
 
-        //TODO: These two attrs may not exist - poss. on downloaded content(?)
         const recordedStartTime = new Date(textOfNamedElement('upnp:recordedStartDateTime'));
         const recordedDuration = parseDuration(textOfNamedElement('upnp:recordedDuration'));
 
@@ -74,10 +116,10 @@ export class Item {
         const seriesID = textOfNamedElement('upnp:seriesID');
         const serviceType = Number(textOfNamedElement('vx:X_genre'));
 
-        return Object.freeze(new Item(id, title, description, 
+        return Object.freeze(new Item(id, title, description,
             viewed,
             recordedStartTime,
-            recordedDuration, 
+            recordedDuration,
             channelName,
             seriesID,
             serviceType));

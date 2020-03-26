@@ -7,39 +7,62 @@
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
 
     <style>
+      :root {
+        --main-bg-color: bisque;
+      }
+
       #epgTable {
         width: 100%;
         overflow-x:auto
       }
 
+      #epgTable th {
+          background-color: var(--main-bg-color);
+      }
+
+      table.sticky th {
+        position: sticky;
+        top: 0;
+      }
+
       #epgTable tr:nth-child(even) {
-        background-color: #f2f2f2;
+        background-color: var(--main-bg-color);
       }
 
       tr.notViewed {
         background-color: #c9fdc9;
       }
+
+      tr.description td {
+          font-size: small;
+      }
+
+      #footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 50px;
+        background-color: var(--main-bg-color);
+    }
     </style>
   </head>
   <body>
-    <table id="epgTable" style="visibility: collapse;">
+    <table id="epgTable" style="visibility: collapse;" class="sticky">
       <thead>
-        <tr>
-          <th>Title</th>
-          <th>Description</th>
-          <th>Channel</th>
-          <th>Recorded</th>
-          <th>Duration</th>
-          <th>Genre</th>
-        </tr>
+        <tr><!--Initially empty --></tr>
       </thead>
 
-      <!-- FIXME: how'd I do this in the Sales Orchestrator? -->
-      <tbody id="epgTableBody"></tbody>
+      <tbody><!--Initially empty--></tbody>
 
     </table>
+
+    <div id="footer">
+        This is the footer.
+    </div>
+
+    </div>
   </body>
 
-  <!-- You can also require other files to run in this process -->
   <script src="./renderer.js" type="module"></script>
 </html>
