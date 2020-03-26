@@ -51,9 +51,8 @@ export class Item {
         type(arguments, [HTMLTableSectionElement]);
 
         const row = tbody.insertRow();
-        if (!this.viewed) {
-            row.classList.add('notViewed');
-        }
+        row.classList.add(this.viewed ? 'viewed' : 'notViewed');
+
         const descriptionRow = tbody.insertRow();
         descriptionRow.classList.add('description');
 
