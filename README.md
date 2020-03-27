@@ -7,5 +7,5 @@ Find a SkyPlus machine on your network, query it's catalogue of recordings, and 
 ## To install & run
 
 ```
-npm install && npm run
+npm install && npm start
 ```
