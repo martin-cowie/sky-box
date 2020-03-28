@@ -1,6 +1,5 @@
 //TODO: make table sortable, and groupable on series/genre
 
-const {Client} = require('node-ssdp');
 const axios = require('axios').default;
 const xpath = require('xpath');
 const dom = require('xmldom').DOMParser;
@@ -8,10 +7,10 @@ const type = require('typeof-arguments');
 const moment = require('moment');
 
 import {Item} from './Item.js'
-import {decodeXml} from './Common.js';
+import {decodeXml, SKY_BROWSE_URN} from './Common.js';
+import {SkyFinder} from './SkyFinder.js'
 
 const SOAP_URL = "http://schemas.xmlsoap.org/soap/envelope/";
-const SKY_BROWSE_URN = 'urn:schemas-nds-com:service:SkyBrowse:2';
 
 //TODO: figure out how to apply XPath regardless of name-spaces
 //TODO: remove hack, replace explicit namespace with prefix `X` with the default namespace
@@ -146,10 +145,8 @@ function populateSummary(summaryElem, items) {
     summaryElem.innerText = `You have ${totalDuration.humanize()} of recordings, of which ${totalUnwatchedDuration.humanize()} is unwatched.`
 }
 
-//TODO: Abstract this into a SkyPlusFinder
-const ssdp = new Client();
-ssdp.on('response', (headers, code, rinfo) => {
-    const location = headers.LOCATION;
+const finder = new SkyFinder();
+finder.on('found', (location) => {
     console.debug(`Sky Plus URL: ${location}`);
 
     // GET the URL, and extract the control URL for the URN
@@ -175,8 +172,4 @@ ssdp.on('response', (headers, code, rinfo) => {
     })
 });
 
-
-ssdp.search(SKY_BROWSE_URN);
-// setInterval(function() {
-//     ssdp.search(SKY_BROWSE_URN);
-// }, 5_000);
+finder.find();

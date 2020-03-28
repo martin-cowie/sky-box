@@ -1,3 +1,4 @@
+export const SKY_BROWSE_URN = 'urn:schemas-nds-com:service:SkyBrowse:2';
 
 
 var xml_special_to_escaped_one_map = {
