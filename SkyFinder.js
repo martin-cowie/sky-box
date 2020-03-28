@@ -33,7 +33,6 @@ export class SkyFinder extends EventEmitter {
             return;
         }
         if (this.found.has(rinfo.address)) {
-            console.debug(`Ignoring known host`, rinfo.address);
             return;
         }
         this.found.add(rinfo.address);
