@@ -21,6 +21,11 @@ export class SkyBox {
         this.postURL = postURL;
     }
 
+    toString() {
+        //TODO: placeholder
+        return this.postURL;
+    }
+
     /**
      * Factory method. Resolve a SkyBrowse URL to a SkyBox object.
      * @param {String} location 

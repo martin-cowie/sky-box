@@ -32,27 +32,16 @@ function populateSummary(summaryElem, items) {
     summaryElem.innerText = `You have ${totalDuration.humanize()} of recordings, of which ${totalUnwatchedDuration.humanize()} is unwatched.`
 }
 
-async function fetchAllItems(location) {
-    type(arguments, [String]);
-
-    // GET the URL, and extract the control URL for the URN
-    const skyBox = await SkyBox.from(location);
-    const items = skyBox.fetchAllItems();
-
-    console.log(items);
-    return items;
-}
-
 const finder = new SkyFinder();
-finder.on('found', (location) => {
+finder.on('found', (skyBox) => {
 
     // GET the URL, and extract the control URL for the URN
-    fetchAllItems(location).then(items => {
+    skyBox.fetchAllItems().then(items => {
         populateTable(document.getElementById("epgTable"), items);
         populateSummary(document.getElementById("footer"), items);
     })
     .catch(err => {
-        console.error(`Exception: `, err);
+        console.error(`Cannot get items from ${skyBox.toString()}: `, err);
     });
 });
 

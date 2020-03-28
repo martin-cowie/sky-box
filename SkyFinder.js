@@ -2,6 +2,7 @@ const {Client} = require('node-ssdp');
 const EventEmitter = require('events');
 
 import {SKY_BROWSE_URN} from './Common.js';
+import {SkyBox} from './SkyBox.js';
 
 /**
  * Find SkyPlus machines. 
@@ -37,8 +38,7 @@ export class SkyFinder extends EventEmitter {
         }
         this.found.add(rinfo.address);
 
-        // TODO: construct a SkyBox object and deliver that via event
-        this.emit('found', headers.LOCATION);
+        SkyBox.from(headers.LOCATION).then(skyBox => this.emit('found', skyBox));
     }
 
 }
