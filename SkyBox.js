@@ -14,16 +14,16 @@ const XPATH_EXPR = `/X:root/X:device/X:serviceList/X:service[X:serviceType/text(
 const BROWSE_ACTION = "\"urn:schemas-nds-com:service:SkyBrowse:2#Browse\"";
 
 /**
- * Encapsulate SkyPlux (a.k.a. 'SkyBox') functionality.
+ * Encapsulate SkyPlus (a.k.a. 'SkyBox') functionality.
  */
 export class SkyBox {
     constructor(postURL) {
+        type(arguments, [URL]);
         this.postURL = postURL;
     }
 
     toString() {
-        //TODO: placeholder
-        return this.postURL;
+        return `SkyBox at ` + this.postURL.hostname;
     }
 
     /**

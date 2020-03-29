@@ -35,6 +35,8 @@ function populateSummary(summaryElem, items) {
 const finder = new SkyFinder();
 finder.on('found', (skyBox) => {
 
+    document.title = skyBox.toString();
+
     // GET the URL, and extract the control URL for the URN
     skyBox.fetchAllItems().then(items => {
         populateTable(document.getElementById("epgTable"), items);
