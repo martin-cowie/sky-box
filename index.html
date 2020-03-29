@@ -7,17 +7,22 @@
     <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline';" />
 
     <style>
-      :root {
-        --main-bg-color: bisque;
+
+      body {
+        background: linear-gradient(to bottom right, rgb(23,85,166), rgb(22,47,93)) fixed;
+        font-family: Sans-Serif;
       }
 
       #epgTable {
         width: 100%;
-        overflow-x:auto
+        overflow-x: auto;
+        background-color:  rgb(13,27,65);
+        color: rgb(193,214,255);
       }
 
       #epgTable th {
-          background-color: var(--main-bg-color);
+          background-color: rgb(12,51,100);
+          color: rgb(150	191	237	);
       }
 
       table.sticky th {
@@ -26,11 +31,11 @@
       }
 
       tr.viewed {
-        background-color: var(--main-bg-color);
+        background-color: rgb(33,50,106);
       }
 
       tr.notViewed {
-        background-color: #c9fdc9;
+        background-color: rgb(20,35,87);
       }
 
       tr.description td {
