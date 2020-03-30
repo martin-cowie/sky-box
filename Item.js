@@ -91,7 +91,7 @@ export class Item {
     static from(itemElement) {
         function textOfNamedElement(name) {
             const elementZero = itemElement.getElementsByTagName(name).item(0);
-            return elementZero?.textContent;
+            return elementZero ? elementZero.textContent : undefined;
         }
 
         const hasElement = (tag) => {

@@ -2,10 +2,17 @@
   "name": "sky-box",
   "version": "1.0.0",
   "description": "",
+  "config": {
+    "outDir": "build"
+  },
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ."
+    "start": "electron ./$npm_package_config_outDir/",
+
+    "prebuild": "rm -rf ./$npm_package_config_outDir",
+    "build": "tsc",
+    "postbuild": "cp -f index.html package.json ./$npm_package_config_outDir"
   },
   "keywords": [],
   "author": "",
@@ -19,6 +26,7 @@
     "xpath": "0.0.27"
   },
   "devDependencies": {
-    "electron": "^8.1.1"
+    "electron": "^8.1.1",
+    "typescript": "^3.8.3"
   }
 }
