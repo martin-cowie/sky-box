@@ -1,4 +1,3 @@
-const type = require('typeof-arguments');
 const moment = require('moment');
 
 /**
@@ -7,35 +6,33 @@ const moment = require('moment');
  * @param {String} str
  * @returns the number of seconds of the duration
  */
-function parseDuration(str) {
-    type(arguments, [String]);
-
+function parseDuration(str: string) {
     const re = /P0D(\d+):(\d+):(\d+)/;
     const parts = str.match(re);
     if (!parts) {
-        throw Error('Cannot parse Period: ', str);
+        throw Error('Cannot parse Period: ' + str);
     }
     const [_, hours, mins, seconds] = parts;
-    return Number(seconds) + (60 * mins) + (60 * 60 * hours);
+    return Number(seconds) + (60 * parseInt(mins)) + (60 * 60 * parseInt(hours));
 }
 
 export class Item {
-    id; // String
-    title; // String
-    description; // String
+    
+    readonly id: string;
+    readonly title: string
+    readonly description: string
 
-    viewed; // Boolean
+    readonly viewed: boolean;
 
-    recordedStartTime; // Date
-    recordedStartTime; // Number of milliseconds
+    readonly recordedStartTime: Date
+    readonly recordedDuration: number;// of milliseconds
 
-    channel; // String channel name
-    seriesID; // String optional series ID
+    readonly channel: string; // String channel name
+    readonly seriesID: string|null; // String optional series ID
 
-    genre; // Number
+    readonly genre: number; // Number
 
-    constructor(id, title, description, viewed, recordedStartTime, recordedDuration, channel, seriesID, genre) {
-        type(arguments, [String, String, String, Boolean, "Date|undefined", "Number|undefined", String, 'string|undefined', Number]);
+    constructor(id: string, title: string, description: string, viewed: boolean, recordedStartTime: Date, recordedDuration: number, channel: string, seriesID: string|null, genre: number) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -47,9 +44,7 @@ export class Item {
         this.genre = genre;
     }
 
-    toRows(tbody) {
-        type(arguments, [HTMLTableSectionElement]);
-
+    public toRows(tbody: HTMLTableSectionElement): void {
         const row = tbody.insertRow();
         row.classList.add(this.viewed ? 'viewed' : 'notViewed');
 
@@ -70,9 +65,7 @@ export class Item {
         descriptionCell.colSpan = 5;
     }
 
-    static createHeaders(thead) {
-        type(arguments, [HTMLTableSectionElement]);
-
+    public static createHeaders(thead: HTMLTableSectionElement): void {
         const row = thead.insertRow();
         const createCell = (text) => {
             const th = document.createElement('th');
@@ -88,10 +81,11 @@ export class Item {
      * Factory method. Build an Item from the given XML
      * @param {Element} itemElement
      */
-    static from(itemElement) {
-        function textOfNamedElement(name) {
+    public static from(itemElement: Element): Item|null {
+        function textOfNamedElement(name: string): string|null {
             const elementZero = itemElement.getElementsByTagName(name).item(0);
-            return elementZero ? elementZero.textContent : undefined;
+            const result = elementZero?.textContent;
+            return result ? result : null; // undefined -> null
         }
 
         const hasElement = (tag) => {
@@ -108,17 +102,21 @@ export class Item {
         const description = textOfNamedElement('dc:description');
         const viewed = Number(textOfNamedElement('vx:X_isViewed')) ? true : false ;
 
-        const recordedStartTime = new Date(textOfNamedElement('upnp:recordedStartDateTime'));
-        const recordedDuration = parseDuration(textOfNamedElement('upnp:recordedDuration'));
+        const recordedStartTimeStr = textOfNamedElement('upnp:recordedStartDateTime');
+        const recordedDurationStr = textOfNamedElement('upnp:recordedDuration');
 
         const channelName = textOfNamedElement('upnp:channelName');
         const seriesID = textOfNamedElement('upnp:seriesID');
         const serviceType = Number(textOfNamedElement('vx:X_genre'));
 
+        if (!id || !title || !description || !channelName || !recordedStartTimeStr || !recordedDurationStr) {
+            return null;
+        }
+
         return Object.freeze(new Item(id, title, description,
             viewed,
-            recordedStartTime,
-            recordedDuration,
+            new Date(recordedStartTimeStr),
+            parseDuration(recordedDurationStr),
             channelName,
             seriesID,
             serviceType));

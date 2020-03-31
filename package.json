@@ -9,7 +9,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "electron ./$npm_package_config_outDir/",
-
     "prebuild": "rm -rf ./$npm_package_config_outDir",
     "build": "tsc",
     "postbuild": "cp -f index.html package.json ./$npm_package_config_outDir"
@@ -27,6 +26,7 @@
   },
   "devDependencies": {
     "electron": "^8.1.1",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "@types/xmldom": "^0.1.29"
   }
 }
