@@ -1,3 +1,5 @@
+//TODO: a better packaging setup, so we can Import anything: local, imported or from the Electron runtime.
+//TODO: relatedly, remove the need for the `.js` suffix in `import` statements.
 
 import {SkyFinder} from './SkyFinder.js'
 import {SkyBox} from './SkyBox.js';

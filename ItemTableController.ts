@@ -9,6 +9,14 @@ export class ItemTableController {
  
     private items: Item[] = [];
 
+    private static comparators: {[k: string]: (a: Item, b:Item)=>number} = {
+        'Title': (a: Item, b: Item) => a.title.localeCompare(b.title),
+        'Channel': (a: Item, b: Item) => a.channel.localeCompare(b.channel),
+        'Recorded': (a: Item, b: Item) => a.recordedStartTime > b.recordedStartTime ? 1 : -1,
+        'Genre': (a: Item, b: Item) => a.genre > b.genre ? 1 : -1,
+        'Duration': (a: Item, b: Item) => a.recordedDuration > b.recordedDuration ? 1 : -1
+    };
+
     constructor(
         private readonly skyBox: SkyBox, 
         private readonly table: HTMLTableElement, 
@@ -17,25 +25,44 @@ export class ItemTableController {
 
     public async refresh(): Promise<void> {
         this.items = await this.skyBox.fetchAllItems();
-        this.populateTable()
-        this.populateSummary();
+        this.draw();
     }
 
     public draw() {
-        this.populateTable()
+        this.populateTableHeader();
+        this.populateTableBody()
         this.populateSummary();
     }
 
-    private populateTable() {
+    private populateTableHeader() {
         const newHeader = document.createElement('thead');
-        Item.createHeaders(newHeader);
+        const headerEmitter = Item.createHeaders(newHeader);
         this.table.tHead?.replaceWith(newHeader);
 
+        headerEmitter.on('headerClicked', (headerName: string) => {
+            this.sortColumn(headerName);
+        });
+    }
+
+    private populateTableBody() {
         const newBody = document.createElement('tbody');
         this.items.forEach(item => item.toRows(newBody));
         this.table.tBodies[0].replaceWith(newBody);
 
         this.table.style.visibility = 'visible';
+    }
+
+    private sortColumn(columnName: string) {
+        const comparator = ItemTableController.comparators[columnName];
+
+        if (comparator) {
+            console.debug(`Sorting on column '${columnName}'`);
+            this.items.sort(comparator);
+            this.populateTableBody();
+        } else {
+            console.error(`Cannot sort on column ${columnName} yet`);
+        }
+
     }
 
     private populateSummary() {
