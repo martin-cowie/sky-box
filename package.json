@@ -25,8 +25,8 @@
     "xpath": "0.0.27"
   },
   "devDependencies": {
-    "electron": "^8.1.1",
-    "typescript": "^3.8.3",
-    "@types/xmldom": "^0.1.29"
+    "@types/xmldom": "^0.1.29",
+    "electron": "^8.2.0",
+    "typescript": "^3.8.3"
   }
 }

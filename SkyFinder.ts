@@ -4,16 +4,28 @@ const EventEmitter = require('events');
 import {SKY_BROWSE_URN} from './Common.js';
 import {SkyBox} from './SkyBox.js';
 
+interface SSDPHeaders {
+    LOCATION: string;
+}
+
+interface SSDPRemoteInfo {
+    address: string;
+}
+
 /**
  * Find SkyPlus machines. 
  * @event 'found' includes the URL for the SkyBrowse service
  */
 export class SkyFinder extends EventEmitter {
+
+    private ssdp = new Client;
+
+    private found: Set<string> = new Set();
+
     constructor() {
         super();
-        this.ssdp = new Client();
-        this.found = new Set();
-        this.ssdp.on('response', (headers, code, rinfo) => this._handleResponse(headers, code, rinfo));
+        
+        this.ssdp.on('response', (headers: SSDPHeaders, code: number, rinfo: SSDPRemoteInfo) => this.handleResponse(headers, code, rinfo));
     }
 
     /**
@@ -28,7 +40,7 @@ export class SkyFinder extends EventEmitter {
         }, 10_000);
     }
 
-    _handleResponse(headers, code, rinfo) {
+    private handleResponse(headers: SSDPHeaders, code: number, rinfo: SSDPRemoteInfo) {
         console.debug(`_headerResponse`, headers, code, rinfo);
         if (code != 200) {
             return;

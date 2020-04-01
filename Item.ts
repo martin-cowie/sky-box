@@ -12,7 +12,7 @@ function parseDuration(str: string) {
     if (!parts) {
         throw Error('Cannot parse Period: ' + str);
     }
-    const [_, hours, mins, seconds] = parts;
+    const [, hours, mins, seconds] = parts;
     return Number(seconds) + (60 * parseInt(mins)) + (60 * 60 * parseInt(hours));
 }
 
@@ -25,12 +25,23 @@ export class Item {
     readonly viewed: boolean;
 
     readonly recordedStartTime: Date
-    readonly recordedDuration: number;// of milliseconds
 
-    readonly channel: string; // String channel name
-    readonly seriesID: string|null; // String optional series ID
+    /**
+     * Duration in seconds
+     */
+    readonly recordedDuration: number;
 
-    readonly genre: number; // Number
+    /**
+     * channel name
+     */
+    readonly channel: string;
+
+    /**
+     * optional series ID
+     */
+    readonly seriesID: string|null;
+
+    readonly genre: number;
 
     constructor(id: string, title: string, description: string, viewed: boolean, recordedStartTime: Date, recordedDuration: number, channel: string, seriesID: string|null, genre: number) {
         this.id = id;
@@ -44,6 +55,10 @@ export class Item {
         this.genre = genre;
     }
 
+    /**
+     * Insert one or more rows representing this Item, into the given table body.
+     * @param tbody destination for newly created rows.
+     */
     public toRows(tbody: HTMLTableSectionElement): void {
         const row = tbody.insertRow();
         row.classList.add(this.viewed ? 'viewed' : 'notViewed');
@@ -51,7 +66,7 @@ export class Item {
         const descriptionRow = tbody.insertRow();
         descriptionRow.classList.add('description');
 
-        const createCell = (text) => {
+        const createCell = (text: string) => {
             row.insertCell().innerText = text;
         };
 
@@ -65,9 +80,13 @@ export class Item {
         descriptionCell.colSpan = 5;
     }
 
+    /**
+     * Insert a table header, representing an Item.
+     * @param thead destination for newly created header.
+     */
     public static createHeaders(thead: HTMLTableSectionElement): void {
         const row = thead.insertRow();
-        const createCell = (text) => {
+        const createCell = (text: string) => {
             const th = document.createElement('th');
             th.innerText = text;
             row.appendChild(th);
@@ -80,6 +99,7 @@ export class Item {
     /**
      * Factory method. Build an Item from the given XML
      * @param {Element} itemElement
+     * @returns an Item if possible or null otherwise.
      */
     public static from(itemElement: Element): Item|null {
         function textOfNamedElement(name: string): string|null {
@@ -88,7 +108,7 @@ export class Item {
             return result ? result : null; // undefined -> null
         }
 
-        const hasElement = (tag) => {
+        const hasElement = (tag: string) => {
             return itemElement.getElementsByTagName(tag).length > 0;
         }
 

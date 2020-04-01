@@ -1,10 +1,11 @@
 const axios = require('axios').default;
 const xpath = require('xpath');
-const dom = require('xmldom').DOMParser;
+const DOMParser = require('xmldom').DOMParser;
 const type = require('typeof-arguments');
 
 import {Item} from './Item.js';
 import {decodeXml, SKY_BROWSE_URN} from './Common.js';
+// import {DOMParser} from 'xmldom'; // FIXME: imports the right types, but doesn't run
 
 const SOAP_URL = "http://schemas.xmlsoap.org/soap/envelope/";
 
@@ -17,7 +18,10 @@ const BROWSE_ACTION = "\"urn:schemas-nds-com:service:SkyBrowse:2#Browse\"";
  * Encapsulate SkyPlus (a.k.a. 'SkyBox') functionality.
  */
 export class SkyBox {
-    constructor(postURL) {
+
+    private postURL: URL;
+
+    constructor(postURL: URL) {
         type(arguments, [URL]);
         this.postURL = postURL;
     }
@@ -30,12 +34,12 @@ export class SkyBox {
      * Factory method. Resolve a SkyBrowse URL to a SkyBox object.
      * @param {String} location 
      */
-    static async from(location) {
+    static async from(location: string) {
         type(arguments, [String]);
         const response = await axios.get(location);
 
         // TODO: This XML & XPath ugliness could be replaced with browser APIs
-        const doc = new dom().parseFromString(response.data);
+        const doc = new DOMParser().parseFromString(response.data);
         const select = xpath.useNamespaces({'X': 'urn:schemas-upnp-org:device-1-0'});
         const nodes = select(XPATH_EXPR, doc);
         const path = nodes[0].toString();
@@ -50,10 +54,10 @@ export class SkyBox {
      * @param {Number} startIndex
      * @param {Number} requestCount
      */
-    _buildRequest(objectID, startIndex, requestCount) {
+    private buildRequest(objectID: string, startIndex: number, requestCount: number) {
         var result = document.implementation.createDocument("", "", null);
 
-        const createElem = (elemType, parentNode, ns) => {
+        const createElem = (elemType: string, parentNode: Node, ns?: string) => {
             var elem = ns ? result.createElementNS(ns, elemType) : result.createElement(elemType);
             parentNode.appendChild(elem);
             return elem;
@@ -75,7 +79,7 @@ export class SkyBox {
         }).forEach(([key, value]) => {
             const elem = createElem(key, browseElem);
             if (value !== null) {
-                const text = document.createTextNode(value);
+                const text = document.createTextNode(String(value));
                 elem.appendChild(text);
             }
         });
@@ -88,17 +92,17 @@ export class SkyBox {
      * @param {Number} startIndex
      * @returns tuple [Array of Items, total number of items matching]
      */
-    async _fetchItems(postURL, startIndex) {
+    async fetchItems(postURL: URL, startIndex: number): Promise<[(Item|null)[], number]> {
         type(arguments, [URL, Number]);
 
         //-------------------------------
         // Compose & send the request
 
-        const objectID = 3; // FIXME: resolve this magic number
+        const objectID = "3"; // FIXME: resolve this magic number
         const requestCount = 25;
 
-        const request = this._buildRequest(objectID, startIndex, requestCount);
-        console.debug(`XML request `, request);
+        const request = this.buildRequest(objectID, startIndex, requestCount);
+        console.debug(`Fetch request `, request);
 
         const response = await axios.post(postURL, request, {
             headers: {
@@ -117,40 +121,40 @@ export class SkyBox {
             'u': SKY_BROWSE_URN
         });
 
-        const responseDoc = new dom().parseFromString(response.data);
+        const responseDoc = new DOMParser().parseFromString(response.data);
         const contentNodes = select(RESULT_TEXT, responseDoc);
         const totalMatchesNodes = select(TOTAL_MATCHES_TEXT, responseDoc);
         const xmlSource = decodeXml(contentNodes[0].toString());
-        const contentDoc = new dom().parseFromString(xmlSource);
+        const contentDoc = new DOMParser().parseFromString(xmlSource);
         const totalMatches = parseInt(totalMatchesNodes[0].toString());
 
         //-------------------------------
         // Build a result
         const items = Array
             .from(contentDoc.documentElement.getElementsByTagName('item'))
-            .map(itemElement => Item.from(itemElement));
+            .map(itemElement => Item.from(itemElement as Element)); //FIXME: casting shouldn't be necessary
         return [items, totalMatches];
     }
 
     /**
      * @returns Array<Item> from this SkyBox
      */
-    async fetchAllItems() {
+    async fetchAllItems(): Promise<Item[]> {
         console.debug(`fetchAllItems(${this.postURL.toString()})`);
 
-        const result = [];
-        const [items, totalItems] = await this._fetchItems(this.postURL, 0);
+        const result: (Item|null)[] = [];
+        const [items, totalItems] = await this.fetchItems(this.postURL, 0);
         result.push(...items);
         console.debug(`Query matches total of ${totalItems}, response contains ${items.length} items`);
 
         while(result.length < totalItems) {
-            const [moreItems, _] = await this._fetchItems(this.postURL, result.length);
+            const [moreItems,] = await this.fetchItems(this.postURL, result.length);
             result.push(...moreItems);
             console.log(`${result.length}/${totalItems}`);
         }
 
-        // Remove items that haven't been recorded yet
-        return result.filter(item => item);
+        // Remove null items (items that haven't been recorded yet)
+        return result.filter(item => item) as Item[];
     }
 
 }
