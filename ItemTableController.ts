@@ -7,7 +7,15 @@ import {Item} from './Item.js';
 
 export class ItemTableController {
  
+    /**
+     * The items on display, in any order.
+     */
     private items: Item[] = [];
+
+    /** 
+     * The Items received from the SkyBox, in received order.
+    */
+    private originalItems: Item[] = [];
 
     private static comparators: {[k: string]: (a: Item, b:Item)=>number} = {
         'Title': (a: Item, b: Item) => a.title.localeCompare(b.title),
@@ -20,11 +28,18 @@ export class ItemTableController {
     constructor(
         private readonly skyBox: SkyBox, 
         private readonly table: HTMLTableElement, 
-        private readonly summaryDiv: HTMLDivElement) {
+        private readonly summaryElem: HTMLElement,
+        private readonly unviewedCheckbox: HTMLInputElement
+        ) {
+
+            unviewedCheckbox.onclick = () => {
+                this.showOnlyUnviewed(this.unviewedCheckbox.checked);
+            };
     }
 
     public async refresh(): Promise<void> {
         this.items = await this.skyBox.fetchAllItems();
+        this.originalItems = Array.from(this.items);
         this.draw();
     }
 
@@ -62,13 +77,21 @@ export class ItemTableController {
         } else {
             console.error(`Cannot sort on column ${columnName} yet`);
         }
+    }
 
+    private showOnlyUnviewed(filter: boolean) {
+        if (filter) {
+            this.items = this.items.filter(item => item.viewed == false);
+        } else {
+            this.items = Array.from(this.originalItems);
+        }
+        this.populateTableBody();
     }
 
     private populateSummary() {
         const totalDuration = moment.duration(this.items.reduce((acc, item) => acc + item.recordedDuration, 0), 'seconds');
         const totalUnwatchedDuration = moment.duration(this.items.reduce((acc, item) => item.viewed ? acc : acc + item.recordedDuration, 0), 'seconds');
 
-        this.summaryDiv.innerText = `You have ${totalDuration.humanize()} of recordings, of which ${totalUnwatchedDuration.humanize()} is unwatched.`
+        this.summaryElem.innerText = `You have ${totalDuration.humanize()} of recordings, of which ${totalUnwatchedDuration.humanize()} is unwatched.`
     }
 }

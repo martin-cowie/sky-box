@@ -12,7 +12,9 @@ finder.on('found', async (skyBox: SkyBox) => {
 
     const tableController = new ItemTableController(skyBox, 
         document.getElementById("epgTable") as HTMLTableElement, 
-        document.getElementById("footer") as HTMLDivElement);
+        document.getElementById("summary") as HTMLDivElement,
+        document.getElementById("unviewedCheckbox") as HTMLInputElement
+        );
 
     tableController.refresh();
 

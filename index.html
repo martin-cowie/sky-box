@@ -11,25 +11,26 @@
       :root {
         --odd-row: rgb(20,35,87);
         --even-row: rgb(33,50,106);
+        --main-text-color: rgb(193,214,255);
       }
 
       body {
         background: linear-gradient(to bottom right, rgb(23,85,166), rgb(22,47,93)) fixed;
         font-family: Sans-Serif;
+        color: var(--main-text-color);
+        cursor: default;
       }
 
       #epgTable {
         width: 100%;
         overflow-x: auto;
         background-color:  rgb(13,27,65);
-        color: rgb(193,214,255);
         border-collapse: collapse
       }
 
       #epgTable th {
           background-color: rgb(12,51,100);
           color: rgb(150	191	237	);
-          cursor: default;
       }
 
       #epgTable tbody tr:nth-last-child(4n+1) {
@@ -61,16 +62,26 @@
       }
 
       #footer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 50px;
-        background-color: var(--main-bg-color);
-    }
+        margin-top: 10px;
+      }
+
+      #header {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: baseline;
+      }
     </style>
   </head>
   <body>
+    <div id="header">
+      <div>
+        <input type="checkbox" id="unviewedCheckbox"></button>
+        <label>Show only unviewed items.</label>
+      </div>
+      <div id="summary"></div>
+    </div>
+
     <table id="epgTable" style="visibility: collapse;" class="sticky">
       <thead>
         <tr><!--Initially empty --></tr>
@@ -80,7 +91,6 @@
 
     </table>
 
-    <div id="footer"><!--Initially empty--></div>
 
     </div>
   </body>
