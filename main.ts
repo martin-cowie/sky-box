@@ -1,6 +1,78 @@
-const { app, BrowserWindow } = require('electron');
+const {app, BrowserWindow, Menu, MenuItem, webContents} = require('electron'); //FIXME: use import
+
 
 function createWindow () {
+  const template: any = [
+    {
+      label: 'Edit', 
+      submenu: [
+        {
+          label: 'Find',
+          accelerator: 'CommandOrControl+F',
+          click: () => {
+            const content = webContents.getFocusedWebContents();
+            content?.send('find');
+          }
+        }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        {
+          label: 'Show viewed content',
+          type: 'checkbox',
+          checked: true,
+          accelerator: 'CommandOrControl+S',
+          click: (menuItem: any) => { //FIXME: use MenuItem
+            const content = webContents.getFocusedWebContents();
+            content?.send('showViewedContent', menuItem.checked);
+          }
+        },
+      ]
+    }
+  ];
+  if (process.platform == 'darwin') {
+    var appName = app.name;
+    template.unshift({
+      label: appName,
+      submenu: [
+        {
+          label: 'About ' + appName,
+          role: 'about'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          label: 'Hide ' + appName,
+          accelerator: 'Command+H',
+          role: 'hide'
+        },
+        {
+          label: 'Hide Others',
+          accelerator: 'Command+Shift+H',
+          role: 'hideothers'
+        },
+        {
+          label: 'Show All',
+          role: 'unhide'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          label: 'Quit',
+          accelerator: 'Command+Q',
+          click: function() { app.quit(); }
+        },
+      ]
+    });
+  }
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu); 
+  
   const win = new BrowserWindow({
     width: 800,
     height: 600,
@@ -10,9 +82,7 @@ function createWindow () {
   });
 
   win.loadFile('index.html');
-
-  // Open the DevTools.
-  // win.webContents.openDevTools();
+  win.webContents.openDevTools();
 }
 
 app.whenReady().then(createWindow);

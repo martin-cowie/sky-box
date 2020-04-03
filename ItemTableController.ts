@@ -28,13 +28,8 @@ export class ItemTableController {
     constructor(
         private readonly skyBox: SkyBox, 
         private readonly table: HTMLTableElement, 
-        private readonly summaryElem: HTMLElement,
-        private readonly unviewedCheckbox: HTMLInputElement
+        private readonly summaryElem: HTMLElement
         ) {
-
-            unviewedCheckbox.onclick = () => {
-                this.showOnlyUnviewed(this.unviewedCheckbox.checked);
-            };
     }
 
     public async refresh(): Promise<void> {
@@ -79,11 +74,11 @@ export class ItemTableController {
         }
     }
 
-    private showOnlyUnviewed(filter: boolean) {
-        if (filter) {
-            this.items = this.items.filter(item => item.viewed == false);
-        } else {
+    public showViewed(value: boolean) {
+        if (value) {
             this.items = Array.from(this.originalItems);
+        } else {
+            this.items = this.items.filter(item => item.viewed == false);
         }
         this.populateTableBody();
     }

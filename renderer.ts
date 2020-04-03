@@ -4,6 +4,7 @@
 import {SkyFinder} from './SkyFinder.js'
 import {SkyBox} from './SkyBox.js';
 import {ItemTableController} from './ItemTableController.js';
+const {ipcRenderer} = require('electron'); //FIXME: should be able to import this
 
 const finder = new SkyFinder();
 finder.on('found', async (skyBox: SkyBox) => {
@@ -13,11 +14,18 @@ finder.on('found', async (skyBox: SkyBox) => {
     const tableController = new ItemTableController(skyBox, 
         document.getElementById("epgTable") as HTMLTableElement, 
         document.getElementById("summary") as HTMLDivElement,
-        document.getElementById("unviewedCheckbox") as HTMLInputElement
         );
 
     tableController.refresh();
 
+    ipcRenderer.on('find', () => {
+        console.debug(`Find menuItem clicked`)
+    });
+    
+    ipcRenderer.on('showViewedContent', (event: any, newValue:any) => {
+        console.debug(`showViewedContent: ${newValue}`);
+        tableController.showViewed(newValue);
+    });
 });
 
 finder.find();
