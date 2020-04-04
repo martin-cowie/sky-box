@@ -28,8 +28,17 @@ export class ItemTableController {
     constructor(
         private readonly skyBox: SkyBox, 
         private readonly table: HTMLTableElement, 
-        private readonly summaryElem: HTMLElement
+        private readonly summaryElem: HTMLElement,
+        private readonly findElem: HTMLElement,
+        private readonly findTermInput: HTMLInputElement,
+        private readonly findDismissButton: HTMLInputElement
         ) {
+            this.findTermInput.addEventListener('keyup', (event) => {
+                if (event.key === 'Enter') {
+                    console.debug('Search for ' + this.findTermInput.value)
+                }
+            });
+            this.findDismissButton.onclick = () => this.toggleFind();
     }
 
     public async refresh(): Promise<void> {
@@ -81,6 +90,10 @@ export class ItemTableController {
             this.items = this.items.filter(item => item.viewed == false);
         }
         this.populateTableBody();
+    }
+
+    public toggleFind() {
+        this.findElem.style.display = (this.findElem.style.display == 'none') ? 'block' : 'none';
     }
 
     private populateSummary() {

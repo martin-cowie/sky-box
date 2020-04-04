@@ -72,12 +72,24 @@
         align-items: baseline;
         margin-bottom: 10px;
       }
+
+      #findControls {
+        float: right;
+        margin-top: 5px;
+        margin-bottom: 5px;
+      }
+
     </style>
   </head>
   <body>
     <div id="header">
       <div></div>
       <div id="summary"></div>
+    </div>
+
+    <div id="findControls" style="display: none;">
+      <input id="findTermInput" type="text" placeholder="Search">
+      <input id="findDismissButton" type="button" value="Done">
     </div>
 
     <table id="epgTable" style="visibility: collapse;" class="sticky">

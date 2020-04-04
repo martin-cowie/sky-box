@@ -14,12 +14,16 @@ finder.on('found', async (skyBox: SkyBox) => {
     const tableController = new ItemTableController(skyBox, 
         document.getElementById("epgTable") as HTMLTableElement, 
         document.getElementById("summary") as HTMLDivElement,
+        document.getElementById('findControls') as HTMLElement,
+        document.getElementById('findTermInput') as HTMLInputElement,
+        document.getElementById('findDismissButton') as HTMLInputElement,
         );
 
     tableController.refresh();
 
-    ipcRenderer.on('find', () => {
+    ipcRenderer.on('toggleFind', () => {
         console.debug(`Find menuItem clicked`)
+        tableController.toggleFind();
     });
     
     ipcRenderer.on('showViewedContent', (event: any, newValue:any) => {

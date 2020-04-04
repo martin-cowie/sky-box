@@ -11,7 +11,7 @@ function createWindow () {
           accelerator: 'CommandOrControl+F',
           click: () => {
             const content = webContents.getFocusedWebContents();
-            content?.send('find');
+            content?.send('toggleFind');
           }
         }
       ]
