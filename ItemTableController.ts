@@ -94,6 +94,9 @@ export class ItemTableController {
 
     public toggleFind() {
         this.findElem.style.display = (this.findElem.style.display == 'none') ? 'block' : 'none';
+        if (this.findElem.style.display === 'block') {
+            this.findTermInput.focus();
+        }
     }
 
     private populateSummary() {
