@@ -18,6 +18,20 @@ function parseDuration(str: string) {
     return Number(seconds) + (60 * parseInt(mins)) + (60 * 60 * parseInt(hours));
 }
 
+function mapServiceType(genre: number): string {
+    switch(genre) {
+        case 16: return 'Music';
+        case 11: return 'Documentary';
+        case 3: // fallthrough
+        case 8: return 'Entertainment';
+        case 7: return 'Sport';
+        case 6: return 'Film';
+        case 5: return 'Live'; //FIXME: this is a guess
+        case 2: return 'Kids';
+        default: return String(genre);
+    }
+}
+
 export declare type ItemComparator = (a: Item, b: Item) => number;
 
 const comparators: {[k: string]: ItemComparator} = {
@@ -84,7 +98,8 @@ export class Item {
         [this.title, this.channel,
             moment(this.recordedStartTime).format('dddd, YYYY-MM-DD'),
             moment.duration(this.recordedDuration, 'seconds').humanize(),
-            this.genre].forEach(v => createCell(v));
+            mapServiceType(this.genre)
+        ].forEach(v => createCell(v));
 
         const descriptionCell = descriptionRow.insertCell();
         descriptionCell.innerText = this.description;
