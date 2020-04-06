@@ -34,9 +34,7 @@ export class Item {
     readonly id: string;
     readonly title: string
     readonly description: string
-
     readonly viewed: boolean;
-
     readonly recordedStartTime: Date
 
     /**
@@ -96,7 +94,7 @@ export class Item {
     /**
      * Insert a table header, representing an Item.
      * @param thead destination for newly created header.
-     * //TODO: remove the need for any instead EventEmitter
+     * //TODO: remove the need for `any` instead of EventEmitter
      * @returns an EventEmitter for the group of headers
      */
     public static createHeaders(thead: HTMLTableSectionElement): any {

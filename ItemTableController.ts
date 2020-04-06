@@ -10,6 +10,15 @@ declare type ItemFilter = (item: Item) => boolean;
 const PASSTHRU: ItemFilter = (item: Item) => true;
 const ONLY_UNVIEWED_ITEMS: ItemFilter = (item: Item) => item.viewed == false;
 
+/**
+ * Build a comparator that inverts a given comparator
+ * @param comp invert this
+ */
+function invertComparator(comp: ItemComparator): ItemComparator {
+    return (a: Item, b: Item) => 0 - comp(a, b);
+}
+
+
 export class ItemTableController {
  
     /**
@@ -79,13 +88,11 @@ export class ItemTableController {
     }
 
     private sortColumn(columnName: string, comparator: ItemComparator) {
-        if (comparator) {
-            console.debug(`Sorting on column '${columnName}'`);
-            this.items.sort(comparator);
-            this.populateTableBody();
-        } else {
-            console.error(`Cannot sort on column ${columnName} yet`);
-        }
+        console.debug(`Sorting on column '${columnName}'`);
+
+        // invert the comparator, if already selected
+        this.columnComparator = (this.columnComparator === comparator) ? invertComparator(comparator) : comparator;
+        this.populateTableBody();
     }
 
     public toggleShowViewed(value: boolean) {
