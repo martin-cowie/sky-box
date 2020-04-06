@@ -5,6 +5,12 @@ const moment = require('moment');
 import {SkyBox} from './SkyBox.js';
 import {Item} from './Item.js';
 
+declare type ItemFilter = (item: Item) => boolean;
+declare type ItemComparator = (a: Item, b: Item) => number;
+
+const PASSTHRU: ItemFilter = (item: Item) => true;
+const ONLY_UNVIEWED_ITEMS: ItemFilter = (item: Item) => item.viewed == false;
+
 export class ItemTableController {
  
     /**
@@ -12,18 +18,17 @@ export class ItemTableController {
      */
     private items: Item[] = [];
 
-    /** 
-     * The Items received from the SkyBox, in received order.
-    */
-    private originalItems: Item[] = [];
-
-    private static comparators: {[k: string]: (a: Item, b:Item)=>number} = {
+    private static comparators: {[k: string]: ItemComparator} = {
         'Title': (a: Item, b: Item) => a.title.localeCompare(b.title),
         'Channel': (a: Item, b: Item) => a.channel.localeCompare(b.channel),
         'Recorded': (a: Item, b: Item) => a.recordedStartTime > b.recordedStartTime ? 1 : -1,
         'Genre': (a: Item, b: Item) => a.genre > b.genre ? 1 : -1,
         'Duration': (a: Item, b: Item) => a.recordedDuration > b.recordedDuration ? 1 : -1
     };
+
+    private findFilter: ItemFilter = PASSTHRU;
+    private viewedFilter: ItemFilter = PASSTHRU;
+    private columnComparator: ItemComparator|null = null;
 
     constructor(
         private readonly skyBox: SkyBox, 
@@ -35,7 +40,7 @@ export class ItemTableController {
         ) {
             this.findTermInput.addEventListener('keyup', (event) => {
                 if (event.key === 'Enter') {
-                    console.debug('Search for ' + this.findTermInput.value)
+                    this.doFind(this.findTermInput.value);
                 }
             });
             this.findDismissButton.onclick = () => this.toggleFind();
@@ -43,7 +48,6 @@ export class ItemTableController {
 
     public async refresh(): Promise<void> {
         this.items = await this.skyBox.fetchAllItems();
-        this.originalItems = Array.from(this.items);
         this.draw();
     }
 
@@ -65,7 +69,19 @@ export class ItemTableController {
 
     private populateTableBody() {
         const newBody = document.createElement('tbody');
-        this.items.forEach(item => item.toRows(newBody));
+
+        // Create a copy for mutating
+        const items = Array.from(this.items);
+
+        if (this.columnComparator) {
+            items.sort(this.columnComparator);
+        }
+
+        items
+            .filter(this.findFilter)
+            .filter(this.viewedFilter)
+            .forEach(item => item.toRows(newBody));
+
         this.table.tBodies[0].replaceWith(newBody);
 
         this.table.style.visibility = 'visible';
@@ -83,12 +99,8 @@ export class ItemTableController {
         }
     }
 
-    public showViewed(value: boolean) {
-        if (value) {
-            this.items = Array.from(this.originalItems);
-        } else {
-            this.items = this.items.filter(item => item.viewed == false);
-        }
+    public toggleShowViewed(value: boolean) {
+        this.viewedFilter = value ? PASSTHRU : ONLY_UNVIEWED_ITEMS;
         this.populateTableBody();
     }
 
@@ -96,7 +108,19 @@ export class ItemTableController {
         this.findElem.style.display = (this.findElem.style.display == 'none') ? 'block' : 'none';
         if (this.findElem.style.display === 'block') {
             this.findTermInput.focus();
+        } else {
+            this.findFilter = PASSTHRU;
+            this.populateTableBody();
         }
+    }
+
+    public doFind(term: string) {
+        console.debug('Search for ' + this.findTermInput.value);
+
+        this.findFilter = (item: Item) => 
+            item.title.toLocaleLowerCase().includes(term.toLocaleLowerCase()) || 
+            item.description.toLocaleLowerCase().includes(term.toLocaleLowerCase());
+        this.populateTableBody();
     }
 
     private populateSummary() {

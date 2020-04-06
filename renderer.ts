@@ -28,7 +28,7 @@ finder.on('found', async (skyBox: SkyBox) => {
     
     ipcRenderer.on('showViewedContent', (event: any, newValue:any) => {
         console.debug(`showViewedContent: ${newValue}`);
-        tableController.showViewed(newValue);
+        tableController.toggleShowViewed(newValue);
     });
 });
 
