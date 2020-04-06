@@ -18,6 +18,17 @@ function parseDuration(str: string) {
     return Number(seconds) + (60 * parseInt(mins)) + (60 * 60 * parseInt(hours));
 }
 
+export declare type ItemComparator = (a: Item, b: Item) => number;
+
+const comparators: {[k: string]: ItemComparator} = {
+    'Title': (a: Item, b: Item) => a.title.localeCompare(b.title),
+    'Channel': (a: Item, b: Item) => a.channel.localeCompare(b.channel),
+    'Recorded': (a: Item, b: Item) => a.recordedStartTime > b.recordedStartTime ? 1 : -1,
+    'Genre': (a: Item, b: Item) => a.genre > b.genre ? 1 : -1,
+    'Duration': (a: Item, b: Item) => a.recordedDuration > b.recordedDuration ? 1 : -1
+};
+
+
 export class Item {
     
     readonly id: string;
@@ -93,7 +104,7 @@ export class Item {
         const createCell = (text: string, emitter: any) => {
             const th = document.createElement('th');
             th.innerText = text;
-            th.onclick = () => emitter.emit('headerClicked', text);
+            th.onclick = () => emitter.emit('headerClicked', text, comparators[text]);
             row.appendChild(th);
         };
 

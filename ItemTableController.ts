@@ -3,10 +3,9 @@
 const moment = require('moment');
 
 import {SkyBox} from './SkyBox.js';
-import {Item} from './Item.js';
+import {Item, ItemComparator} from './Item.js';
 
 declare type ItemFilter = (item: Item) => boolean;
-declare type ItemComparator = (a: Item, b: Item) => number;
 
 const PASSTHRU: ItemFilter = (item: Item) => true;
 const ONLY_UNVIEWED_ITEMS: ItemFilter = (item: Item) => item.viewed == false;
@@ -17,14 +16,6 @@ export class ItemTableController {
      * The items on display, in any order.
      */
     private items: Item[] = [];
-
-    private static comparators: {[k: string]: ItemComparator} = {
-        'Title': (a: Item, b: Item) => a.title.localeCompare(b.title),
-        'Channel': (a: Item, b: Item) => a.channel.localeCompare(b.channel),
-        'Recorded': (a: Item, b: Item) => a.recordedStartTime > b.recordedStartTime ? 1 : -1,
-        'Genre': (a: Item, b: Item) => a.genre > b.genre ? 1 : -1,
-        'Duration': (a: Item, b: Item) => a.recordedDuration > b.recordedDuration ? 1 : -1
-    };
 
     private findFilter: ItemFilter = PASSTHRU;
     private viewedFilter: ItemFilter = PASSTHRU;
@@ -62,8 +53,8 @@ export class ItemTableController {
         const headerEmitter = Item.createHeaders(newHeader);
         this.table.tHead?.replaceWith(newHeader);
 
-        headerEmitter.on('headerClicked', (headerName: string) => {
-            this.sortColumn(headerName);
+        headerEmitter.on('headerClicked', (headerName: string, comparator: ItemComparator) => {
+            this.sortColumn(headerName, comparator);
         });
     }
 
@@ -87,9 +78,7 @@ export class ItemTableController {
         this.table.style.visibility = 'visible';
     }
 
-    private sortColumn(columnName: string) {
-        const comparator = ItemTableController.comparators[columnName];
-
+    private sortColumn(columnName: string, comparator: ItemComparator) {
         if (comparator) {
             console.debug(`Sorting on column '${columnName}'`);
             this.items.sort(comparator);
