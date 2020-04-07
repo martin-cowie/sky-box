@@ -50,9 +50,8 @@
         top: 0;
       }
 
-      tr.notViewed td:nth-child(1) {
-        font-weight: bold;
-        text-decoration: underline;      
+      tr.notViewed td:nth-child(1)::before {
+        content: "🔷 ";
       }
 
       tr.description td {
