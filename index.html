@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html>
   <head>
     <meta charset="UTF-8">
@@ -23,9 +22,8 @@
 
       #epgTable {
         width: 100%;
-        overflow-x: auto;
         background-color:  rgb(13,27,65);
-        border-collapse: collapse
+        border-collapse: collapse;
       }
 
       #epgTable th {
@@ -61,16 +59,24 @@
           font-size: small;
       }
 
-      #footer {
-        margin-top: 10px;
+      .container {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+          flex-wrap: nowrap;
       }
 
-      #header {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: baseline;
-        margin-bottom: 10px;
+      header {
+          flex-shrink: 0;
+      }
+      .body{
+          flex-grow: 1;
+          overflow: auto;
+          min-height: 2em;
+      }
+      footer{
+          flex-shrink: 0;
       }
 
       #findControls {
@@ -79,28 +85,38 @@
         margin-bottom: 5px;
       }
 
+      #summary {
+        float: right;
+      }
+
+
     </style>
   </head>
   <body>
-    <div id="header">
-      <div></div>
-      <div id="summary"></div>
-    </div>
 
-    <div id="findControls" style="display: none;">
-      <input id="findTermInput" type="text" placeholder="Search">
-      <input id="findDismissButton" type="button" value="Done">
-    </div>
+    <div class="container">
 
-    <table id="epgTable" style="visibility: collapse;" class="sticky">
-      <thead>
-        <tr><!--Initially empty --></tr>
-      </thead>
-
-      <tbody><!--Initially empty--></tbody>
-
-    </table>
-
+      <header>
+        <div id="findControls" style="display: none;">
+          <input id="findTermInput" type="text" placeholder="Search">
+          <input id="findDismissButton" type="button" value="Done">
+        </div>
+      </header>
+  
+      <div class="body">
+        <table id="epgTable" style="visibility: collapse;" class="sticky body">
+          <thead>
+            <tr><!--Initially empty --></tr>
+          </thead>
+    
+          <tbody><!--Initially empty--></tbody>
+        </table>
+      </div>
+  
+      <footer>
+        <p id="summary"></p>
+      </footer>
+  
 
     </div>
   </body>
