@@ -17,6 +17,7 @@ finder.on('found', async (skyBox: SkyBox) => {
         document.getElementById('findControls') as HTMLElement,
         document.getElementById('findTermInput') as HTMLInputElement,
         document.getElementById('findDismissButton') as HTMLInputElement,
+        document.getElementById('findSummary') as HTMLElement
         );
 
     tableController.refresh();

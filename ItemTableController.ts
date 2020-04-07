@@ -7,7 +7,6 @@ import {Item, ItemComparator} from './Item.js';
 
 declare type ItemFilter = (item: Item) => boolean;
 
-const PASSTHRU: ItemFilter = (item: Item) => true;
 const ONLY_UNVIEWED_ITEMS: ItemFilter = (item: Item) => item.viewed == false;
 
 /**
@@ -26,9 +25,9 @@ export class ItemTableController {
      */
     private items: Item[] = [];
 
-    private findFilter: ItemFilter = PASSTHRU;
-    private viewedFilter: ItemFilter = PASSTHRU;
-    private columnComparator: ItemComparator|null = null;
+    private findFilter?: ItemFilter;
+    private viewedFilter?: ItemFilter;
+    private columnComparator?: ItemComparator;
 
     constructor(
         private readonly skyBox: SkyBox, 
@@ -36,7 +35,8 @@ export class ItemTableController {
         private readonly summaryElem: HTMLElement,
         private readonly findElem: HTMLElement,
         private readonly findTermInput: HTMLInputElement,
-        private readonly findDismissButton: HTMLInputElement
+        private readonly findDismissButton: HTMLInputElement,
+        private readonly findSummary: HTMLElement
         ) {
             this.findTermInput.addEventListener('keyup', (event) => {
                 if (event.key === 'Enter') {
@@ -77,14 +77,25 @@ export class ItemTableController {
             items.sort(this.columnComparator);
         }
 
-        items
-            .filter(this.findFilter)
-            .filter(this.viewedFilter)
-            .forEach(item => item.toRows(newBody));
+        if (this.findFilter || this.viewedFilter) {
+            const filteredItems = [this.findFilter, this.viewedFilter].reduce((acc, filter) => {
+                return filter ? acc.filter(filter) : acc;
+            }, items);
 
+            filteredItems.forEach(item => item.toRows(newBody));
+
+            const duration = moment.duration(
+                filteredItems.reduce((acc, item) => acc + item.recordedDuration, 0), 'seconds'
+            ).humanize();
+
+            this.findSummary.innerText = `${filteredItems.length} matches, roughly ${duration}`;
+        } else {
+            items.forEach(item => item.toRows(newBody));
+            this.findSummary.innerText = '';
+        }
         this.table.tBodies[0].replaceWith(newBody);
-
         this.table.style.visibility = 'visible';
+
     }
 
     private sortColumn(columnName: string, comparator: ItemComparator) {
@@ -96,7 +107,7 @@ export class ItemTableController {
     }
 
     public toggleShowViewed(value: boolean) {
-        this.viewedFilter = value ? PASSTHRU : ONLY_UNVIEWED_ITEMS;
+        this.viewedFilter = value ? undefined : ONLY_UNVIEWED_ITEMS;
         this.populateTableBody();
     }
 
@@ -105,7 +116,7 @@ export class ItemTableController {
         if (this.findElem.style.display === 'block') {
             this.findTermInput.focus();
         } else {
-            this.findFilter = PASSTHRU;
+            this.findFilter = undefined;
             this.populateTableBody();
         }
     }
@@ -123,6 +134,6 @@ export class ItemTableController {
         const totalDuration = moment.duration(this.items.reduce((acc, item) => acc + item.recordedDuration, 0), 'seconds');
         const totalUnwatchedDuration = moment.duration(this.items.reduce((acc, item) => item.viewed ? acc : acc + item.recordedDuration, 0), 'seconds');
 
-        this.summaryElem.innerText = `You have ${totalDuration.humanize()} of recordings, of which ${totalUnwatchedDuration.humanize()} is unwatched.`
+        this.summaryElem.innerText = `${totalDuration.humanize()} of recordings, ${totalUnwatchedDuration.humanize()} unwatched.`
     }
 }

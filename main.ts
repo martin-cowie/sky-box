@@ -20,11 +20,11 @@ function createWindow () {
       label: 'View',
       submenu: [
         {
-          label: 'Show viewed content',
+          label: 'Show watched content',
           type: 'checkbox',
           checked: true,
-          accelerator: 'CommandOrControl+S',
-          click: (menuItem: any) => { //FIXME: use MenuItem
+          accelerator: 'CommandOrControl+W',
+          click: (menuItem: any) => {
             const content = webContents.getFocusedWebContents();
             content?.send('showViewedContent', menuItem.checked);
           }
