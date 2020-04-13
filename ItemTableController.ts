@@ -4,6 +4,7 @@ const moment = require('moment');
 
 import {SkyBox} from './SkyBox.js';
 import {Item, ItemComparator} from './Item.js';
+import {TableRowSelectionModel} from './TableRowSelectionModel.js';
 
 declare type ItemFilter = (item: Item) => boolean;
 
@@ -19,7 +20,7 @@ function invertComparator(comp: ItemComparator): ItemComparator {
 
 
 export class ItemTableController {
- 
+
     /**
      * The items on display, in any order.
      */
@@ -30,8 +31,8 @@ export class ItemTableController {
     private columnComparator?: ItemComparator;
 
     constructor(
-        private readonly skyBox: SkyBox, 
-        private readonly table: HTMLTableElement, 
+        private readonly skyBox: SkyBox,
+        private readonly table: HTMLTableElement,
         private readonly summaryElem: HTMLElement,
         private readonly findElem: HTMLElement,
         private readonly findTermInput: HTMLInputElement,
@@ -44,6 +45,11 @@ export class ItemTableController {
                 }
             });
             this.findDismissButton.onclick = () => this.toggleFind();
+
+            const selectionModel = TableRowSelectionModel.from(table);
+            selectionModel.on('selection', (rows: HTMLTableRowElement[]) => {
+                console.log(`Selected ${rows.length} rows`);
+            });
     }
 
     public async refresh(): Promise<void> {
@@ -124,8 +130,8 @@ export class ItemTableController {
     public doFind(term: string) {
         console.debug('Search for ' + this.findTermInput.value);
 
-        this.findFilter = (item: Item) => 
-            item.title.toLocaleLowerCase().includes(term.toLocaleLowerCase()) || 
+        this.findFilter = (item: Item) =>
+            item.title.toLocaleLowerCase().includes(term.toLocaleLowerCase()) ||
             item.description.toLocaleLowerCase().includes(term.toLocaleLowerCase());
         this.populateTableBody();
     }

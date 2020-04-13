@@ -21,7 +21,7 @@ export class SkyBox {
 
     private postURL: URL;
 
-    constructor(postURL: URL) {
+    private constructor(postURL: URL) {
         type(arguments, [URL]);
         this.postURL = postURL;
     }
@@ -32,7 +32,7 @@ export class SkyBox {
 
     /**
      * Factory method. Resolve a SkyBrowse URL to a SkyBox object.
-     * @param {String} location 
+     * @param {String} location
      */
     static async from(location: string) {
         type(arguments, [String]);

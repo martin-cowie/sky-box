@@ -44,7 +44,7 @@ const comparators: {[k: string]: ItemComparator} = {
 
 
 export class Item {
-    
+
     readonly id: string;
     readonly title: string
     readonly description: string
@@ -68,7 +68,7 @@ export class Item {
 
     readonly genre: number;
 
-    constructor(id: string, title: string, description: string, viewed: boolean, recordedStartTime: Date, recordedDuration: number, channel: string, seriesID: string|null, genre: number) {
+    private constructor(id: string, title: string, description: string, viewed: boolean, recordedStartTime: Date, recordedDuration: number, channel: string, seriesID: string|null, genre: number) {
         this.id = id;
         this.title = title;
         this.description = description;

@@ -28,7 +28,7 @@
 
       #epgTable th {
           background-color: rgb(12,51,100);
-          color: rgb(150	191	237	);
+          color: rgb(150, 191, 237);
       }
 
       #epgTable tbody tr:nth-last-child(4n+1) {
@@ -43,6 +43,14 @@
       }
       #epgTable tbody tr:nth-last-child(4n+4) {
         background-color: var(--odd-row);
+      }
+      #epgTable tbody tr.selected {
+        background-color: rgb(249,243,95);
+        color: rgb(62, 67, 3);
+      }
+
+      table.disable-selection {
+        user-select: none;
       }
 
       table.sticky th {
@@ -88,7 +96,6 @@
         float: right;
       }
 
-
     </style>
   </head>
   <body>
@@ -102,21 +109,21 @@
           <input id="findDismissButton" type="button" value="Done">
         </div>
       </header>
-  
+
       <div class="body">
-        <table id="epgTable" style="visibility: collapse;" class="sticky body">
+        <table id="epgTable" style="visibility: collapse;" class="sticky body disable-selection">
           <thead>
             <tr><!--Initially empty --></tr>
           </thead>
-    
+
           <tbody><!--Initially empty--></tbody>
         </table>
       </div>
-  
+
       <footer>
         <p id="summary"></p>
       </footer>
-  
+
 
     </div>
   </body>
