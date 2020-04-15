@@ -1,6 +1,5 @@
 //TODO: make table sortable, and groupable on series/genre
-
-const moment = require('moment');
+import moment from 'moment';
 
 import {SkyBox} from './SkyBox.js';
 import {Item, ItemComparator} from './Item.js';

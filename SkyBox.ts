@@ -1,7 +1,6 @@
-const axios = require('axios').default;
-const xpath = require('xpath');
-
-import {DOMParser} from 'xmldom'; // FIXME: imports the right types, but doesn't run
+import axios from 'axios';
+import {useNamespaces} from 'xpath';
+import {DOMParser} from 'xmldom';
 
 import {Item} from './Item';
 import {decodeXml, SKY_BROWSE_URN} from './Common';
@@ -37,7 +36,7 @@ export class SkyBox {
 
         // TODO: This XML & XPath ugliness could be replaced with browser APIs
         const doc = new DOMParser().parseFromString(response.data);
-        const select = xpath.useNamespaces({'X': 'urn:schemas-upnp-org:device-1-0'});
+        const select = useNamespaces({'X': 'urn:schemas-upnp-org:device-1-0'});
         const nodes = select(XPATH_EXPR, doc);
         const path = nodes[0].toString();
 
@@ -100,7 +99,7 @@ export class SkyBox {
         const request = this.buildRequest(objectID, startIndex, requestCount);
         console.debug(`Fetch request `, request);
 
-        const response = await axios.post(postURL, request, {
+        const response = await axios.post(postURL.toString(), request, {
             headers: {
                 SOAPACTION: BROWSE_ACTION,
                 'Content-Type': "text/xml"
@@ -112,7 +111,7 @@ export class SkyBox {
         const RESULT_TEXT = "/s:Envelope/s:Body/u:BrowseResponse/Result/text()";
         const TOTAL_MATCHES_TEXT = "/s:Envelope/s:Body/u:BrowseResponse/TotalMatches/text()";
 
-        const select = xpath.useNamespaces({
+        const select = useNamespaces({
             's': SOAP_URL,
             'u': SKY_BROWSE_URN
         });

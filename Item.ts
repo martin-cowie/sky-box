@@ -1,5 +1,4 @@
-const moment = require('moment');
-
+import moment from 'moment';
 import {EventEmitter} from 'events';
 /**
  * Parse the not-quite-ISO standard period/duration format that Sky uses.
