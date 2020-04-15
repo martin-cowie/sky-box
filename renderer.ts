@@ -9,7 +9,7 @@ finder.on('found', async (skyBox: SkyBox) => {
     document.title = skyBox.toString();
 
     const tableController = new ItemTableController(skyBox,
-        document.getElementById("epgTable") as HTMLTableElement,
+        document.getElementById("itemTable") as HTMLTableElement,
         document.getElementById("summary") as HTMLDivElement,
         document.getElementById('findControls') as HTMLElement,
         document.getElementById('findTermInput') as HTMLInputElement,
