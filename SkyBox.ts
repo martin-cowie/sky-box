@@ -1,11 +1,10 @@
 const axios = require('axios').default;
 const xpath = require('xpath');
-const DOMParser = require('xmldom').DOMParser;
-const type = require('typeof-arguments');
 
-import {Item} from './Item.js';
-import {decodeXml, SKY_BROWSE_URN} from './Common.js';
-// import {DOMParser} from 'xmldom'; // FIXME: imports the right types, but doesn't run
+import {DOMParser} from 'xmldom'; // FIXME: imports the right types, but doesn't run
+
+import {Item} from './Item';
+import {decodeXml, SKY_BROWSE_URN} from './Common';
 
 const SOAP_URL = "http://schemas.xmlsoap.org/soap/envelope/";
 
@@ -22,7 +21,6 @@ export class SkyBox {
     private postURL: URL;
 
     private constructor(postURL: URL) {
-        type(arguments, [URL]);
         this.postURL = postURL;
     }
 
@@ -35,7 +33,6 @@ export class SkyBox {
      * @param {String} location
      */
     static async from(location: string) {
-        type(arguments, [String]);
         const response = await axios.get(location);
 
         // TODO: This XML & XPath ugliness could be replaced with browser APIs
@@ -93,7 +90,6 @@ export class SkyBox {
      * @returns tuple [Array of Items, total number of items matching]
      */
     async fetchItems(postURL: URL, startIndex: number): Promise<[(Item|null)[], number]> {
-        type(arguments, [URL, Number]);
 
         //-------------------------------
         // Compose & send the request

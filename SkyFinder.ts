@@ -1,8 +1,8 @@
 const {Client} = require('node-ssdp');
-const EventEmitter = require('events');
+import {EventEmitter} from 'events';
 
-import {SKY_BROWSE_URN} from './Common.js';
-import {SkyBox} from './SkyBox.js';
+import {SKY_BROWSE_URN} from './Common';
+import {SkyBox} from './SkyBox';
 
 interface SSDPHeaders {
     LOCATION: string;
@@ -13,7 +13,7 @@ interface SSDPRemoteInfo {
 }
 
 /**
- * Find SkyPlus machines. 
+ * Find SkyPlus machines.
  * @event 'found' includes the URL for the SkyBrowse service
  */
 export class SkyFinder extends EventEmitter {
@@ -24,7 +24,7 @@ export class SkyFinder extends EventEmitter {
 
     constructor() {
         super();
-        
+
         this.ssdp.on('response', (headers: SSDPHeaders, code: number, rinfo: SSDPRemoteInfo) => this.handleResponse(headers, code, rinfo));
     }
 

@@ -1,7 +1,6 @@
 const moment = require('moment');
-const EventEmitter = require('events');
-//TODO: import {EventEmitter} from 'events';
 
+import {EventEmitter} from 'events';
 /**
  * Parse the not-quite-ISO standard period/duration format that Sky uses.
  * e.g. `P0D01:03:57` for 1hour, 3mins and 57sec
@@ -109,10 +108,9 @@ export class Item {
     /**
      * Insert a table header, representing an Item.
      * @param thead destination for newly created header.
-     * //TODO: remove the need for `any` instead of EventEmitter
      * @returns an EventEmitter for the group of headers
      */
-    public static createHeaders(thead: HTMLTableSectionElement): any {
+    public static createHeaders(thead: HTMLTableSectionElement): EventEmitter {
         const row = thead.insertRow();
         const createCell = (text: string, emitter: any) => {
             const th = document.createElement('th');

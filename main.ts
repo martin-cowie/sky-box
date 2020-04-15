@@ -1,10 +1,9 @@
-const {app, BrowserWindow, Menu, MenuItem, webContents} = require('electron'); //FIXME: use import
-
+import {app, BrowserWindow, Menu, webContents} from 'electron';
 
 function createWindow () {
   const template: any = [
     {
-      label: 'Edit', 
+      label: 'Edit',
       submenu: [
         {
           label: 'Find',
@@ -71,8 +70,8 @@ function createWindow () {
   }
 
   const menu = Menu.buildFromTemplate(template);
-  Menu.setApplicationMenu(menu); 
-  
+  Menu.setApplicationMenu(menu);
+
   const win = new BrowserWindow({
     width: 800,
     height: 600,
