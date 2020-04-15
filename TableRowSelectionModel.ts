@@ -4,7 +4,7 @@ const SELECTED_CLASS = "selected";
 
 /**
  * Connect to a table and the user can select rows intuitively with click, meta/ctl-click and shift click.
- * list to `selection` events for a list of the selected rows.
+ * @event `selection` a list of the selected rows.
  */
 export class TableRowSelectionModel extends EventEmitter {
 
@@ -22,27 +22,22 @@ export class TableRowSelectionModel extends EventEmitter {
     /**
      * Find HTMLRowElement s beyween from and to, excluding those already selected
      */
-    findPathBetween(from: HTMLTableRowElement, to: HTMLTableRowElement) {
+    private findPathBetween(from: HTMLTableRowElement, to: HTMLTableRowElement): HTMLTableRowElement[] {
         const section = from.parentElement as HTMLTableSectionElement;
         if (!section) {
-            throw Error('argument has parent node!')
+            throw Error('argument lacks parent node!')
         }
 
         const [x,y] = from.sectionRowIndex<to.sectionRowIndex ? [from, to] : [to, from];
         const result = [];
 
         for(let i = x.sectionRowIndex; i <= y.sectionRowIndex; i++ ) {
-            const row = section.rows[i];
-
-            //TODO: this is icky
-            if (!this.model.includes(row)) {
-                result.push(row);
-            }
+            result.push(section.rows[i]);
         }
         return result;
     }
 
-    handleClick(ev: MouseEvent) {
+    private handleClick(ev: MouseEvent) {
         const trElem = (ev.target as HTMLElement).parentElement as HTMLTableRowElement;
         if (!trElem) {
             throw Error('event target has no parentElement!')
@@ -51,13 +46,13 @@ export class TableRowSelectionModel extends EventEmitter {
         if (trElem.parentElement?.tagName !== 'TBODY') {
             return;
         }
-        console.log(`Selected row: `, trElem);
+        console.debug(`Selected row: `, trElem);
 
         if (ev.shiftKey) {
             // Extend the selection onwards from the last
             if(this.model.length) {
                 const lastSelected = this.model[this.model.length -1];
-                const path = this.findPathBetween(lastSelected, trElem);
+                const path = this.findPathBetween(lastSelected, trElem).filter(rowElem => !this.model.includes(rowElem));
 
                 console.log(`Found path of ${path.length} elements, to add to model`);
                 path.forEach(elem => elem.classList.add(SELECTED_CLASS));
