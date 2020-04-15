@@ -4,6 +4,7 @@ import {DOMParser} from 'xmldom';
 
 import {Item} from './Item';
 import {decodeXml, SKY_BROWSE_URN} from './Common';
+import {readFileSync} from 'fs';
 
 const SOAP_URL = "http://schemas.xmlsoap.org/soap/envelope/";
 
@@ -15,23 +16,16 @@ const BROWSE_ACTION = "\"urn:schemas-nds-com:service:SkyBrowse:2#Browse\"";
 /**
  * Encapsulate SkyPlus (a.k.a. 'SkyBox') functionality.
  */
-export class SkyBox {
+export interface SkyBox {
+    fetchAllItems(): Promise<Item[]>;
+}
 
-    private postURL: URL;
-
-    private constructor(postURL: URL) {
-        this.postURL = postURL;
-    }
-
-    toString() {
-        return `SkyBox at ` + this.postURL.hostname;
-    }
-
+export namespace SkyBox {
     /**
      * Factory method. Resolve a SkyBrowse URL to a SkyBox object.
      * @param {String} location
      */
-    static async from(location: string) {
+    export async function from(location: string): Promise<SkyBox> {
         const response = await axios.get(location);
 
         // TODO: This XML & XPath ugliness could be replaced with browser APIs
@@ -41,7 +35,51 @@ export class SkyBox {
         const path = nodes[0].toString();
 
         const postURL = new URL(path, location);
-        return new SkyBox(postURL);
+        return new SkyBoxImpl(postURL);
+    }
+
+    export async function fromTestData(filename: string): Promise<SkyBox>  {
+        return new SkyBoxTestImpl(filename);
+    }
+}
+
+class SkyBoxTestImpl implements SkyBox {
+
+    private xmlSource: string;
+
+    constructor(private filename: string) {
+        this.xmlSource = String(readFileSync(filename));
+    }
+
+    toString(): string {
+        return this.filename;
+    }
+
+    async fetchAllItems(): Promise<Item[]> {
+        const contentDoc = new DOMParser().parseFromString(this.xmlSource);
+
+        //-------------------------------
+        // Build a result
+        const items = Array
+            .from(contentDoc.documentElement.getElementsByTagName('item'))
+            .map(itemElement => Item.from(itemElement));
+
+        // Remove null items (items that haven't been recorded yet)
+        return items.filter(item => item) as Item[];
+    }
+
+}
+
+class SkyBoxImpl implements SkyBox {
+
+    private postURL: URL;
+
+    constructor(postURL: URL) {
+        this.postURL = postURL;
+    }
+
+    toString() {
+        return `SkyBox at ` + this.postURL.hostname;
     }
 
     /**
@@ -88,7 +126,7 @@ export class SkyBox {
      * @param {Number} startIndex
      * @returns tuple [Array of Items, total number of items matching]
      */
-    async fetchItems(postURL: URL, startIndex: number): Promise<[(Item|null)[], number]> {
+    private async fetchItems(postURL: URL, startIndex: number): Promise<[(Item|null)[], number]> {
 
         //-------------------------------
         // Compose & send the request
@@ -107,7 +145,7 @@ export class SkyBox {
         });
 
         //-------------------------------
-        // Handle the response
+        // Handle the response, which is doubley-wrapped XML
         const RESULT_TEXT = "/s:Envelope/s:Body/u:BrowseResponse/Result/text()";
         const TOTAL_MATCHES_TEXT = "/s:Envelope/s:Body/u:BrowseResponse/TotalMatches/text()";
 
@@ -127,7 +165,7 @@ export class SkyBox {
         // Build a result
         const items = Array
             .from(contentDoc.documentElement.getElementsByTagName('item'))
-            .map(itemElement => Item.from(itemElement as Element)); //FIXME: casting shouldn't be necessary
+            .map(itemElement => Item.from(itemElement));
         return [items, totalMatches];
     }
 

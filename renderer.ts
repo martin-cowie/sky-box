@@ -1,11 +1,9 @@
 import {SkyFinder} from './SkyFinder'
 import {SkyBox} from './SkyBox';
 import {ItemTableController} from './ItemTableController';
-import {ipcRenderer}  from 'electron';
+import {ipcRenderer, remote}  from 'electron';
 
-const finder = new SkyFinder();
-finder.on('found', async (skyBox: SkyBox) => {
-
+async function handleFoundSkyBox(skyBox: SkyBox) {
     document.title = skyBox.toString();
 
     const tableController = new ItemTableController(skyBox,
@@ -28,6 +26,15 @@ finder.on('found', async (skyBox: SkyBox) => {
         console.debug(`showViewedContent: ${newValue}`);
         tableController.toggleShowViewed(newValue);
     });
-});
+}
 
-finder.find();
+const args = remote.process.argv;
+if (args.length > 2) {
+    const filename = args[2];
+    console.log(`loading test data from ${filename}`);
+    SkyBox.fromTestData(filename).then(handleFoundSkyBox);
+} else {
+    const finder = new SkyFinder();
+    finder.on('found', handleFoundSkyBox);
+    finder.find();
+}
