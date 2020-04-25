@@ -13,6 +13,14 @@ export class TableRowSelectionModel extends EventEmitter {
     private constructor(private tableElem: HTMLTableElement) {
         super();
         this.tableElem.onclick = (ev) => this.handleClick(ev);
+        window.addEventListener("keydown", (event) => {
+            switch (event.key) {
+                case 'Escape': 
+                    console.log(`Escape pressed`);
+                    this.model.forEach(trElem => trElem.classList.remove(SELECTED_CLASS));
+                    this.model = [];
+            }
+        });
     }
 
     static from(tableElem: HTMLTableElement) {
@@ -20,7 +28,7 @@ export class TableRowSelectionModel extends EventEmitter {
     }
 
     /**
-     * Find HTMLRowElement s beyween from and to, excluding those already selected
+     * Find HTMLTableSectionElements between `from` and `to`.
      */
     private findPathBetween(from: HTMLTableSectionElement, to: HTMLTableSectionElement): HTMLTableSectionElement[] {
         const section = from.parentElement as HTMLTableSectionElement;
@@ -28,13 +36,6 @@ export class TableRowSelectionModel extends EventEmitter {
             throw Error('argument lacks parent node!')
         }
 
-        // const [x,y] = from.sectionRowIndex<to.sectionRowIndex ? [from, to] : [to, from];
-        // const result = [];
-
-        // for(let i = x.sectionRowIndex; i <= y.sectionRowIndex; i++ ) {
-        //     result.push(section.rows[i]);
-        // }
-        // return result;
         const lookingNorth: HTMLTableSectionElement[] = [];
         for (let elem: Element|null = from; elem; elem = elem.previousElementSibling) {
             lookingNorth.unshift(elem as HTMLTableSectionElement);
@@ -53,6 +54,7 @@ export class TableRowSelectionModel extends EventEmitter {
 
         return [];
     }
+
 
     private handleClick(ev: MouseEvent) {
         const tobdyElem = (ev.target as HTMLElement).closest('tbody') as HTMLTableSectionElement
