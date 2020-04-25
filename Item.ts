@@ -79,10 +79,12 @@ export class Item {
     }
 
     /**
-     * Insert one or more rows representing this Item, into the given table body.
-     * @param tbody destination for newly created rows.
+     * Insert one or more rows representing this Item, into the given table, within a new `tbody`.
+     * @param table destination for newly created rows.
      */
-    public toRows(tbody: HTMLTableSectionElement): void {
+    public toRows(table: HTMLTableElement): void {
+        const tbody = table.createTBody();
+
         const row = tbody.insertRow();
         row.classList.add(this.viewed ? 'viewed' : 'notViewed');
 

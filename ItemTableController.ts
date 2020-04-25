@@ -73,7 +73,6 @@ export class ItemTableController {
     }
 
     private populateTableBody() {
-        const newBody = document.createElement('tbody');
 
         // Create a copy for mutating
         const items = Array.from(this.items);
@@ -81,13 +80,15 @@ export class ItemTableController {
         if (this.columnComparator) {
             items.sort(this.columnComparator);
         }
+        
+        Array.from(this.table.tBodies).forEach(tbody => tbody.remove());
 
         if (this.findFilter || this.viewedFilter) {
             const filteredItems = [this.findFilter, this.viewedFilter].reduce((acc, filter) => {
                 return filter ? acc.filter(filter) : acc;
             }, items);
 
-            filteredItems.forEach(item => item.toRows(newBody));
+            filteredItems.forEach(item => item.toRows(this.table));
 
             const duration = moment.duration(
                 filteredItems.reduce((acc, item) => acc + item.recordedDuration, 0), 'seconds'
@@ -95,10 +96,9 @@ export class ItemTableController {
 
             this.findSummary.innerText = `${filteredItems.length} matches, roughly ${duration}`;
         } else {
-            items.forEach(item => item.toRows(newBody));
+            items.forEach(item => item.toRows(this.table));
             this.findSummary.innerText = '';
         }
-        this.table.tBodies[0].replaceWith(newBody);
         this.table.style.visibility = 'visible';
 
     }
