@@ -13,12 +13,20 @@ export class TableRowSelectionModel extends EventEmitter {
     private constructor(private tableElem: HTMLTableElement) {
         super();
         this.tableElem.onclick = (ev) => this.handleClick(ev);
+
+        // FIXME: this belongs outside this class
         window.addEventListener("keydown", (event) => {
             switch (event.key) {
                 case 'Escape': 
                     console.log(`Escape pressed`);
                     this.model.forEach(trElem => trElem.classList.remove(SELECTED_CLASS));
                     this.model = [];
+                    break;
+
+                case 'Delete':
+                case 'Backspace':
+                    console.log(`Delete pressed`);
+                    this
             }
         });
     }
@@ -99,7 +107,7 @@ export class TableRowSelectionModel extends EventEmitter {
             // Set the new state
             this.model = [tobdyElem];
         }
-        this.emit('selection', this.model);
+        this.emit('selection', this.model.map((t: any) => t.item));
     }
 
 }

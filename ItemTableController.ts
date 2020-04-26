@@ -46,8 +46,9 @@ export class ItemTableController {
             this.findDismissButton.onclick = () => this.toggleFind();
 
             const selectionModel = TableRowSelectionModel.from(table);
-            selectionModel.on('selection', (rows: HTMLTableRowElement[]) => {
-                console.log(`Selected ${rows.length} rows`);
+            selectionModel.on('selection', (items: Item[]) => {
+                console.log(`Selected ${items.length} rows`);
+                console.log(items);
             });
     }
 

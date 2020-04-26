@@ -85,6 +85,9 @@ export class Item {
     public toRows(table: HTMLTableElement): void {
         const tbody = table.createTBody();
 
+        // Insert reference to this
+        (tbody as any).item = this;
+
         const row = tbody.insertRow();
         row.classList.add(this.viewed ? 'viewed' : 'notViewed');
 
