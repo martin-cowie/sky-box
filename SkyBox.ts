@@ -12,12 +12,15 @@ const SOAP_URL = "http://schemas.xmlsoap.org/soap/envelope/";
 //TODO: remove hack, replace explicit namespace with prefix `X` with the default namespace
 const XPATH_EXPR = `/X:root/X:device/X:serviceList/X:service[X:serviceType/text()='${SKY_BROWSE_URN}']/X:controlURL/text()`;
 const BROWSE_ACTION = "\"urn:schemas-nds-com:service:SkyBrowse:2#Browse\"";
+const DESTROY_ACTION = "\"urn:schemas-nds-com:service:SkyBrowse:2#DestroyObject\"";
 
 /**
  * Encapsulate SkyPlus (a.k.a. 'SkyBox') functionality.
  */
 export interface SkyBox {
     fetchAllItems(): Promise<Item[]>;
+
+    deleteItems(items: Item[]): Promise<void>;
 }
 
 export namespace SkyBox {
@@ -46,16 +49,11 @@ export namespace SkyBox {
 class SkyBoxTestImpl implements SkyBox {
 
     private xmlSource: string;
+    private items: Item[];
 
     constructor(private filename: string) {
         this.xmlSource = String(readFileSync(filename));
-    }
-
-    toString(): string {
-        return this.filename;
-    }
-
-    async fetchAllItems(): Promise<Item[]> {
+        
         const contentDoc = new DOMParser().parseFromString(this.xmlSource);
 
         //-------------------------------
@@ -65,7 +63,20 @@ class SkyBoxTestImpl implements SkyBox {
             .map(itemElement => Item.from(itemElement));
 
         // Remove null items (items that haven't been recorded yet)
-        return items.filter(item => item) as Item[];
+        this.items = items.filter(item => item) as Item[];
+    }
+
+    toString(): string {
+        return this.filename;
+    }
+
+    async fetchAllItems(): Promise<Item[]> {
+        return this.items;
+    }
+
+    async deleteItems(items: Item[]): Promise<void> {
+        const idsToRemove = new Set(items.map(i => i.id));
+        this.items = this.items.filter(i => !idsToRemove.has(i.id));
     }
 
 }
@@ -82,24 +93,19 @@ class SkyBoxImpl implements SkyBox {
         return `SkyBox at ` + this.postURL.hostname;
     }
 
-    /**
-     * Build an XML request.
-     * @param {Number} objectID
-     * @param {Number} startIndex
-     * @param {Number} requestCount
-     */
-    private buildRequest(objectID: string, startIndex: number, requestCount: number) {
-        var result = document.implementation.createDocument("", "", null);
+    private createElem (elemType: string, parentNode: Node, document: Document, ns?: string): Element {
+        const elem = ns ? document.createElementNS(ns, elemType) : document.createElement(elemType);
+        parentNode.appendChild(elem);
+        return elem;
+    };
 
-        const createElem = (elemType: string, parentNode: Node, ns?: string) => {
-            var elem = ns ? result.createElementNS(ns, elemType) : result.createElement(elemType);
-            parentNode.appendChild(elem);
-            return elem;
-        };
 
-        const envelopeElem = createElem("s:Envelope", result, SOAP_URL);
-        const bodyElem = createElem("s:Body", envelopeElem, SOAP_URL);
-        const browseElem = createElem("u:Browse", bodyElem, SKY_BROWSE_URN);
+    private buildFetchRequest(objectID: string, startIndex: number, requestCount: number): string {
+        const result = document.implementation.createDocument("", "", null);
+
+        const envelopeElem = this.createElem("s:Envelope", result, result, SOAP_URL);
+        const bodyElem = this.createElem("s:Body", envelopeElem, result, SOAP_URL);
+        const browseElem = this.createElem("u:Browse", bodyElem, result, SKY_BROWSE_URN);
 
         envelopeElem.setAttributeNS(SOAP_URL, "s:encodingStyle", "http://schemas.xmlsoap.org/soap/encoding");
 
@@ -111,12 +117,26 @@ class SkyBoxImpl implements SkyBox {
             RequestedCount: requestCount,
             SortCriteria: null
         }).forEach(([key, value]) => {
-            const elem = createElem(key, browseElem);
+            const elem = this.createElem(key, browseElem, result);
             if (value !== null) {
                 const text = document.createTextNode(String(value));
                 elem.appendChild(text);
             }
         });
+
+        return new XMLSerializer().serializeToString(result);
+    }
+
+    private buildDeleteRequest(objectID: string): string {
+        var result = document.implementation.createDocument("", "", null);
+
+        const envelopeElem = this.createElem("s:Envelope", result, result, SOAP_URL);
+        const bodyElem = this.createElem("s:Body", envelopeElem, result, SOAP_URL);
+        const destroyElem = this.createElem("u:DestroyObject", bodyElem, result, SKY_BROWSE_URN);
+        const objectIDElem = this.createElem("ObjectID", destroyElem, result);
+
+        const text = document.createTextNode(objectID);
+        objectIDElem.appendChild(text);
 
         return new XMLSerializer().serializeToString(result);
     }
@@ -134,7 +154,7 @@ class SkyBoxImpl implements SkyBox {
         const objectID = "3"; // FIXME: resolve this magic number
         const requestCount = 25;
 
-        const request = this.buildRequest(objectID, startIndex, requestCount);
+        const request = this.buildFetchRequest(objectID, startIndex, requestCount);
         console.debug(`Fetch request `, request);
 
         const response = await axios.post(postURL.toString(), request, {
@@ -189,5 +209,24 @@ class SkyBoxImpl implements SkyBox {
         // Remove null items (items that haven't been recorded yet)
         return result.filter(item => item) as Item[];
     }
+
+    public async deleteItems(items: Item[]): Promise<void> {
+        for (const item of items) {
+            const request = this.buildDeleteRequest(item.id);
+            console.debug(`Delete request `, request);
+        
+            const response = await axios.post(this.postURL.toString(), request, {
+                headers: {
+                    SOAPACTION: DESTROY_ACTION,
+                    'Content-Type': "text/xml"
+                }
+            });
+
+            if (response.status != 200) {
+                throw new Error(`Cannot remove ${item.id}`); //FIXME: something better
+            }
+        };
+    }
+
 
 }

@@ -20,10 +20,10 @@ function invertComparator(comp: ItemComparator): ItemComparator {
 
 export class ItemTableController {
 
-    /**
-     * The items on display, in any order.
-     */
+    //** The Items on display, in any order.
     private items: Item[] = [];
+
+    //** Selected Items
     private selectedItems: Item[] = [];
 
     private findFilter?: ItemFilter;
@@ -159,9 +159,16 @@ export class ItemTableController {
         this.summaryElem.innerText = `${totalDuration.humanize()} of recordings, ${totalUnwatchedDuration.humanize()} unwatched.`
     }
 
-    private doDelete() {
+    private async doDelete() {
         if (this.selectedItems.length > 0) {
             console.log(`Preparing to remove ${this.selectedItems.length} items`);
+            
+            const idsToRemove = new Set(this.selectedItems.map(i => i.id));
+            await this.skyBox.deleteItems(this.selectedItems);
+
+            this.selectionModel.clear();
+            this.items = this.items.filter(i => !idsToRemove.has(i.id));
+            this.draw();
         }
     }
 
