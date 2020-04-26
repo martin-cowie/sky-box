@@ -6,33 +6,17 @@ const SELECTED_CLASS = "selected";
  * Connect to a table and the user can select rows intuitively with click, meta/ctl-click and shift click.
  * @event `selection` a list of the selected rows.
  */
-export class TableRowSelectionModel extends EventEmitter {
+export class ItemSelectionModel extends EventEmitter {
 
     private model: HTMLTableSectionElement[] = [];
 
     private constructor(private tableElem: HTMLTableElement) {
         super();
         this.tableElem.onclick = (ev) => this.handleClick(ev);
-
-        // FIXME: this belongs outside this class
-        window.addEventListener("keydown", (event) => {
-            switch (event.key) {
-                case 'Escape': 
-                    console.log(`Escape pressed`);
-                    this.model.forEach(trElem => trElem.classList.remove(SELECTED_CLASS));
-                    this.model = [];
-                    break;
-
-                case 'Delete':
-                case 'Backspace':
-                    console.log(`Delete pressed`);
-                    this
-            }
-        });
     }
 
     static from(tableElem: HTMLTableElement) {
-        return new TableRowSelectionModel(tableElem);
+        return new ItemSelectionModel(tableElem);
     }
 
     /**
@@ -61,6 +45,19 @@ export class TableRowSelectionModel extends EventEmitter {
         }
 
         return [];
+    }
+
+    /**
+     * Clear any current selected Items.
+     */
+    public clear(): void {
+        this.model.forEach(trElem => trElem.classList.remove(SELECTED_CLASS));
+        this.model = [];
+        this.doSelectionChange();
+    }
+
+    private doSelectionChange() {
+        this.emit('selection', this.model.map((t: any) => t.item));
     }
 
 
@@ -107,7 +104,7 @@ export class TableRowSelectionModel extends EventEmitter {
             // Set the new state
             this.model = [tobdyElem];
         }
-        this.emit('selection', this.model.map((t: any) => t.item));
+        this.doSelectionChange();
     }
 
 }

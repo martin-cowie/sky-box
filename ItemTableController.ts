@@ -1,9 +1,9 @@
 //TODO: make table sortable, and groupable on series/genre
 import moment from 'moment';
 
-import {SkyBox} from './SkyBox.js';
-import {Item, ItemComparator} from './Item.js';
-import {TableRowSelectionModel} from './TableRowSelectionModel.js';
+import {SkyBox} from './SkyBox';
+import {Item, ItemComparator} from './Item';
+import {ItemSelectionModel} from './ItemSelectionModel';
 
 declare type ItemFilter = (item: Item) => boolean;
 
@@ -24,10 +24,12 @@ export class ItemTableController {
      * The items on display, in any order.
      */
     private items: Item[] = [];
+    private selectedItems: Item[] = [];
 
     private findFilter?: ItemFilter;
     private viewedFilter?: ItemFilter;
     private columnComparator?: ItemComparator;
+    private selectionModel: ItemSelectionModel;
 
     constructor(
         private readonly skyBox: SkyBox,
@@ -45,11 +47,25 @@ export class ItemTableController {
             });
             this.findDismissButton.onclick = () => this.toggleFind();
 
-            const selectionModel = TableRowSelectionModel.from(table);
-            selectionModel.on('selection', (items: Item[]) => {
-                console.log(`Selected ${items.length} rows`);
-                console.log(items);
+            this.selectionModel = ItemSelectionModel.from(table);
+            this.selectionModel.on('selection', (items: Item[]) => {
+                this.selectedItems = items;
+                console.debug(`Selected ${items.length} rows`);
             });
+
+            window.addEventListener("keydown", (event) => {
+            switch (event.key) {
+                case 'Escape': 
+                    console.log(`Escape pressed`);
+                    this.selectionModel.clear();
+                    break;
+
+                case 'Delete':
+                case 'Backspace':
+                    console.log(`Delete pressed`);
+                    this.doDelete();
+            }
+        });
     }
 
     public async refresh(): Promise<void> {
@@ -142,4 +158,11 @@ export class ItemTableController {
 
         this.summaryElem.innerText = `${totalDuration.humanize()} of recordings, ${totalUnwatchedDuration.humanize()} unwatched.`
     }
+
+    private doDelete() {
+        if (this.selectedItems.length > 0) {
+            console.log(`Preparing to remove ${this.selectedItems.length} items`);
+        }
+    }
+
 }
