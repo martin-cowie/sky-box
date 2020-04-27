@@ -64,7 +64,8 @@ export class ItemSelectionModel extends EventEmitter {
     private handleClick(ev: MouseEvent) {
         const tobdyElem = (ev.target as HTMLElement).closest('tbody') as HTMLTableSectionElement
         if (!tobdyElem) {
-            throw Error('event target has no parentElement!')
+            // Not an error - a click on the tfoot or thead
+            return;
         }
 
         console.debug(`Selected tbody: `, tobdyElem);
