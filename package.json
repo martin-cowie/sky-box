@@ -18,7 +18,6 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.2",
-    "font-awesome": "^4.7.0",
     "moment": "^2.24.0",
     "node-ssdp": "^4.0.0",
     "typeof-arguments": "^5.1.1",
