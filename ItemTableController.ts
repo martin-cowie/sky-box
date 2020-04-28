@@ -30,6 +30,7 @@ export class ItemTableController {
     private viewedFilter?: ItemFilter;
     private columnComparator?: ItemComparator;
     private selectionModel: ItemSelectionModel;
+    private summaryText: string = "";
 
     constructor(
         private readonly skyBox: SkyBox,
@@ -49,13 +50,12 @@ export class ItemTableController {
 
             this.selectionModel = ItemSelectionModel.from(table);
             this.selectionModel.on('selection', (items: Item[]) => {
-                this.selectedItems = items;
-                console.debug(`Selected ${items.length} rows`);
+                this.doSelectionChange(items);
             });
 
             window.addEventListener("keydown", (event) => {
             switch (event.key) {
-                case 'Escape': 
+                case 'Escape':
                     console.log(`Escape pressed`);
                     this.selectionModel.clear();
                     break;
@@ -73,13 +73,13 @@ export class ItemTableController {
         this.draw();
     }
 
-    public draw() {
+    public draw(): void {
         this.populateTableHeader();
         this.populateTableBody()
         this.populateSummary();
     }
 
-    private populateTableHeader() {
+    private populateTableHeader(): void {
         const newHeader = document.createElement('thead');
         const headerEmitter = Item.createHeaders(newHeader);
         this.table.tHead?.replaceWith(newHeader);
@@ -89,7 +89,7 @@ export class ItemTableController {
         });
     }
 
-    private populateTableBody() {
+    private populateTableBody(): void {
 
         // Create a copy for mutating
         const items = Array.from(this.items);
@@ -97,7 +97,7 @@ export class ItemTableController {
         if (this.columnComparator) {
             items.sort(this.columnComparator);
         }
-        
+
         Array.from(this.table.tBodies).forEach(tbody => tbody.remove());
 
         if (this.findFilter || this.viewedFilter) {
@@ -120,7 +120,7 @@ export class ItemTableController {
 
     }
 
-    private sortColumn(columnName: string, comparator: ItemComparator) {
+    private sortColumn(columnName: string, comparator: ItemComparator): void {
         console.debug(`Sorting on column '${columnName}'`);
 
         // invert the comparator, if already selected
@@ -128,12 +128,12 @@ export class ItemTableController {
         this.populateTableBody();
     }
 
-    public toggleShowViewed(value: boolean) {
+    public toggleShowViewed(value: boolean): void {
         this.viewedFilter = value ? undefined : ONLY_UNVIEWED_ITEMS;
         this.populateTableBody();
     }
 
-    public toggleFind() {
+    public toggleFind(): void {
         this.findElem.style.display = (this.findElem.style.display == 'none') ? 'block' : 'none';
         if (this.findElem.style.display === 'block') {
             this.findTermInput.focus();
@@ -143,7 +143,7 @@ export class ItemTableController {
         }
     }
 
-    public doFind(term: string) {
+    public doFind(term: string): void {
         console.debug('Search for ' + this.findTermInput.value);
 
         this.findFilter = (item: Item) =>
@@ -152,23 +152,43 @@ export class ItemTableController {
         this.populateTableBody();
     }
 
-    private populateSummary() {
+    private populateSummary(): void {
         const totalDuration = moment.duration(this.items.reduce((acc, item) => acc + item.recordedDuration, 0), 'seconds');
         const totalUnwatchedDuration = moment.duration(this.items.reduce((acc, item) => item.viewed ? acc : acc + item.recordedDuration, 0), 'seconds');
 
-        this.summaryElem.innerText = `${totalDuration.humanize()} of recordings, ${totalUnwatchedDuration.humanize()} unwatched.`
+        this.summaryText = `${totalDuration.humanize()} of recordings, ${totalUnwatchedDuration.humanize()} unwatched.`;
+        this.summaryElem.innerText = this.summaryText;
     }
 
-    private async doDelete() {
-        if (this.selectedItems.length > 0) {
+    private async doDelete(): Promise<void> {
+        if (this.selectedItems.length === 0) {
+            return;
+        }
+
+        const selectedDuration = moment.duration(this.selectedItems.reduce((acc, item) => acc + item.recordedDuration, 0), 'seconds');
+        const confirmationText = `Delete ${this.selectedItems.length} recordings covering ${selectedDuration.humanize()} of time?`;
+
+        if (window.confirm(confirmationText)) {
             console.log(`Preparing to remove ${this.selectedItems.length} items`);
-            
+
             const idsToRemove = new Set(this.selectedItems.map(i => i.id));
             await this.skyBox.deleteItems(this.selectedItems);
 
             this.selectionModel.clear();
             this.items = this.items.filter(i => !idsToRemove.has(i.id));
             this.draw();
+        }
+    }
+
+    private doSelectionChange(items: Item[]): void {
+        this.selectedItems = items;
+        console.debug(`Selected ${items.length} rows`);
+
+        if (items.length == 0) {
+            this.summaryElem.innerText = this.summaryText;
+        } else {
+            const totalDuration = moment.duration(items.reduce((acc, item) => acc + item.recordedDuration, 0), 'seconds');
+            this.summaryElem.innerText = `Selected ${totalDuration.humanize()} of recordings`;
         }
     }
 
