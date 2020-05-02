@@ -64,9 +64,14 @@ export class Item {
      */
     readonly seriesID: string|null;
 
+    /**
+     * File name of the recording
+     */
+    readonly res: string;
+
     readonly genre: number;
 
-    private constructor(id: string, title: string, description: string, viewed: boolean, recordedStartTime: Date, recordedDuration: number, channel: string, seriesID: string|null, genre: number) {
+    private constructor(id: string, title: string, description: string, viewed: boolean, recordedStartTime: Date, recordedDuration: number, channel: string, seriesID: string|null, genre: number, res: string) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -76,6 +81,7 @@ export class Item {
         this.channel = channel;
         this.seriesID = seriesID;
         this.genre = genre;
+        this.res = res;
     }
 
     /**
@@ -155,6 +161,7 @@ export class Item {
         const title = textOfNamedElement('dc:title');
         const description = textOfNamedElement('dc:description');
         const viewed = Number(textOfNamedElement('vx:X_isViewed')) ? true : false ;
+        const res = textOfNamedElement('res');
 
         const recordedStartTimeStr = textOfNamedElement('upnp:recordedStartDateTime');
         const recordedDurationStr = textOfNamedElement('upnp:recordedDuration');
@@ -163,7 +170,7 @@ export class Item {
         const seriesID = textOfNamedElement('upnp:seriesID');
         const serviceType = Number(textOfNamedElement('vx:X_genre'));
 
-        if (!id || !title || !description || !channelName || !recordedStartTimeStr || !recordedDurationStr) {
+        if (!id || !title || !description || !channelName || !recordedStartTimeStr || !recordedDurationStr || !res) {
             return null;
         }
 
@@ -173,6 +180,7 @@ export class Item {
             parseDuration(recordedDurationStr),
             channelName,
             seriesID,
-            serviceType));
+            serviceType,
+            res));
     }
 }

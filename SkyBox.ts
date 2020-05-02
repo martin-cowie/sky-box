@@ -3,16 +3,35 @@ import {useNamespaces} from 'xpath';
 import {DOMParser} from 'xmldom';
 
 import {Item} from './Item';
-import {decodeXml, SKY_BROWSE_URN} from './Common';
+import {decodeXml, SKY_BROWSE_URN, SKY_PLAY_URN} from './Common';
 import {readFileSync} from 'fs';
 
 const SOAP_URL = "http://schemas.xmlsoap.org/soap/envelope/";
 
 //TODO: figure out how to apply XPath regardless of name-spaces
 //TODO: remove hack, replace explicit namespace with prefix `X` with the default namespace
-const XPATH_EXPR = `/X:root/X:device/X:serviceList/X:service[X:serviceType/text()='${SKY_BROWSE_URN}']/X:controlURL/text()`;
+
+function buildServiceExpression(serviceType: string) {
+    return `/X:root/X:device/X:serviceList/X:service[X:serviceType/text()='${serviceType}']/X:controlURL/text()`;
+}
+const BROWSE_XPATH_EXPR = buildServiceExpression(SKY_BROWSE_URN);
+const PLAY_XPATH_EXPR = buildServiceExpression(SKY_PLAY_URN);
 const BROWSE_ACTION = "\"urn:schemas-nds-com:service:SkyBrowse:2#Browse\"";
 const DESTROY_ACTION = "\"urn:schemas-nds-com:service:SkyBrowse:2#DestroyObject\"";
+const PLAY_ACTION = "\"urn:schemas-nds-com:service:SkyPlay:2#SetAVTransportURI\"";
+
+function fetchControlURL(location: string, xpath: string): Promise<URL> {
+    return axios.get(location).then(response => {
+        // TODO: This XML & XPath ugliness could be replaced with browser APIs
+        const doc = new DOMParser().parseFromString(response.data);
+        const select = useNamespaces({'X': 'urn:schemas-upnp-org:device-1-0'});
+        const nodes = select(xpath, doc);
+        const path = nodes[0].toString();
+
+        return new URL(path, location);
+    });
+}
+
 
 /**
  * Encapsulate SkyPlus (a.k.a. 'SkyBox') functionality.
@@ -21,24 +40,21 @@ export interface SkyBox {
     fetchAllItems(): Promise<Item[]>;
 
     deleteItems(items: Item[]): Promise<void>;
+
+    play(item: Item): void;
 }
 
 export namespace SkyBox {
+
     /**
-     * Factory method. Resolve a SkyBrowse URL to a SkyBox object.
-     * @param {String} location
+     * Factory method. Construct a SkyBox object from its URNs
+     * @param {String} browseLocation
      */
-    export async function from(location: string): Promise<SkyBox> {
-        const response = await axios.get(location);
-
-        // TODO: This XML & XPath ugliness could be replaced with browser APIs
-        const doc = new DOMParser().parseFromString(response.data);
-        const select = useNamespaces({'X': 'urn:schemas-upnp-org:device-1-0'});
-        const nodes = select(XPATH_EXPR, doc);
-        const path = nodes[0].toString();
-
-        const postURL = new URL(path, location);
-        return new SkyBoxImpl(postURL);
+    export function from(browseLocation: string, playLocation: string): Promise<SkyBox> {
+        return Promise.all([
+            fetchControlURL(playLocation, PLAY_XPATH_EXPR),
+            fetchControlURL(browseLocation, BROWSE_XPATH_EXPR)
+        ]).then(([playURL, browseURL]) => new SkyBoxImpl(browseURL, playURL));
     }
 
     export async function fromTestData(filename: string): Promise<SkyBox>  {
@@ -53,7 +69,7 @@ class SkyBoxTestImpl implements SkyBox {
 
     constructor(private filename: string) {
         this.xmlSource = String(readFileSync(filename));
-        
+
         const contentDoc = new DOMParser().parseFromString(this.xmlSource);
 
         //-------------------------------
@@ -79,18 +95,20 @@ class SkyBoxTestImpl implements SkyBox {
         this.items = this.items.filter(i => !idsToRemove.has(i.id));
     }
 
+    play(item: Item): void {
+        throw new Error('Not implemented for ' + this.constructor.name);
+    }
+
 }
 
 class SkyBoxImpl implements SkyBox {
 
-    private postURL: URL;
-
-    constructor(postURL: URL) {
-        this.postURL = postURL;
+    constructor(private browseURL: URL, private playURL: URL) {
+        console.debug(`Silence tsc: ${this.playURL}`);
     }
 
     toString() {
-        return `SkyBox at ` + this.postURL.hostname;
+        return `SkyBox at ${this.browseURL.hostname}`;
     }
 
     private createElem (elemType: string, parentNode: Node, document: Document, ns?: string): Element {
@@ -142,11 +160,10 @@ class SkyBoxImpl implements SkyBox {
     }
 
     /**
-     * @param {URL} postURL
      * @param {Number} startIndex
      * @returns tuple [Array of Items, total number of items matching]
      */
-    private async fetchItems(postURL: URL, startIndex: number): Promise<[(Item|null)[], number]> {
+    private async fetchItems(startIndex: number): Promise<[(Item|null)[], number]> {
 
         //-------------------------------
         // Compose & send the request
@@ -157,7 +174,7 @@ class SkyBoxImpl implements SkyBox {
         const request = this.buildFetchRequest(objectID, startIndex, requestCount);
         console.debug(`Fetch request `, request);
 
-        const response = await axios.post(postURL.toString(), request, {
+        const response = await axios.post(this.browseURL.toString(), request, {
             headers: {
                 SOAPACTION: BROWSE_ACTION,
                 'Content-Type': "text/xml"
@@ -193,15 +210,15 @@ class SkyBoxImpl implements SkyBox {
      * @returns Array<Item> from this SkyBox
      */
     async fetchAllItems(): Promise<Item[]> {
-        console.debug(`fetchAllItems(${this.postURL.toString()})`);
+        console.debug(`fetchAllItems(${this.browseURL.toString()})`);
 
         const result: (Item|null)[] = [];
-        const [items, totalItems] = await this.fetchItems(this.postURL, 0);
+        const [items, totalItems] = await this.fetchItems(0);
         result.push(...items);
         console.debug(`Query matches total of ${totalItems}, response contains ${items.length} items`);
 
         while(result.length < totalItems) {
-            const [moreItems,] = await this.fetchItems(this.postURL, result.length);
+            const [moreItems,] = await this.fetchItems(result.length);
             result.push(...moreItems);
             console.log(`${result.length}/${totalItems}`);
         }
@@ -214,8 +231,8 @@ class SkyBoxImpl implements SkyBox {
         for (const item of items) {
             const request = this.buildDeleteRequest(item.id);
             console.debug(`Delete request `, request);
-        
-            const response = await axios.post(this.postURL.toString(), request, {
+
+            const response = await axios.post(this.browseURL.toString(), request, {
                 headers: {
                     SOAPACTION: DESTROY_ACTION,
                     'Content-Type': "text/xml"
@@ -228,5 +245,8 @@ class SkyBoxImpl implements SkyBox {
         };
     }
 
+    play(item: Item): void {
+        throw new Error(`Not implemented for ${this.constructor.name} using ${PLAY_ACTION}`);
+    }
 
 }
