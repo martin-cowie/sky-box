@@ -159,6 +159,26 @@ class SkyBoxImpl implements SkyBox {
         return new XMLSerializer().serializeToString(result);
     }
 
+    private buildPlayRequest(item: Item): string {
+        var result = document.implementation.createDocument("", "", null);
+
+        const envelopeElem = this.createElem("s:Envelope", result, result, SOAP_URL);
+        envelopeElem.setAttributeNS(SOAP_URL, "s:encodingStyle", "http://schemas.xmlsoap.org/soap/encoding/");
+
+        const bodyElem = this.createElem("s:Body", envelopeElem, result, SOAP_URL);
+        const setAVTransportElem = this.createElem("u:SetAVTransportURI", bodyElem, result, SKY_PLAY_URN);
+
+        this.createElem('InstanceID', setAVTransportElem, result)
+            .appendChild(document.createTextNode(String(0)));
+        this.createElem('CurrentURI', setAVTransportElem, result)
+            .appendChild(document.createTextNode(item.res + "?position=0&speed=1")); // Necessary to be valid
+        this.createElem('CurrentURIMetaData', setAVTransportElem, result)
+            .appendChild(document.createTextNode("NOT_IMPLEMENTED")); //NB: mimicking the Sky app
+
+        return new XMLSerializer().serializeToString(result);
+    }
+
+
     /**
      * @param {Number} startIndex
      * @returns tuple [Array of Items, total number of items matching]
@@ -230,7 +250,7 @@ class SkyBoxImpl implements SkyBox {
     public async deleteItems(items: Item[]): Promise<void> {
         for (const item of items) {
             const request = this.buildDeleteRequest(item.id);
-            console.debug(`Delete request `, request);
+            console.debug(`Delete request ${request}`);
 
             const response = await axios.post(this.browseURL.toString(), request, {
                 headers: {
@@ -245,8 +265,19 @@ class SkyBoxImpl implements SkyBox {
         };
     }
 
-    play(item: Item): void {
-        throw new Error(`Not implemented for ${this.constructor.name} using ${PLAY_ACTION}`);
+    public async play(item: Item): Promise<void> {
+        const request = this.buildPlayRequest(item);
+        console.debug(`Play request ${request}`)
+        const response = await axios.post(this.playURL.toString(), request, {
+            headers: {
+                SOAPACTION: PLAY_ACTION,
+                'Content-Type': "text/xml"
+            }
+        });
+
+        if (response.status != 200) {
+            throw new Error(`Cannot play ${item.id}`); //FIXME: something better
+        }
     }
 
 }

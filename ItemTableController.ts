@@ -64,6 +64,10 @@ export class ItemTableController {
                 case 'Backspace':
                     console.log(`Delete pressed`);
                     this.doDelete();
+                    break;
+
+                case 'Enter':
+                    this.doPlay();
             }
         });
     }
@@ -178,6 +182,14 @@ export class ItemTableController {
             this.items = this.items.filter(i => !idsToRemove.has(i.id));
             this.draw();
         }
+    }
+
+    private doPlay(): void {
+        if (this.selectedItems.length != 1) {
+            return;
+        }
+
+        this.skyBox.play(this.selectedItems[0]);
     }
 
     private doSelectionChange(items: Item[]): void {
