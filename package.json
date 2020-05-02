@@ -16,7 +16,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.2",
-    "moment": "^2.24.0",
+    "moment": "^2.25.1",
     "node-ssdp": "^4.0.0",
     "xmldom": "^0.3.0",
     "xpath": "0.0.27"
@@ -24,7 +24,7 @@
   "devDependencies": {
     "@types/xmldom": "^0.1.29",
     "del": "^5.1.0",
-    "electron": "^8.2.0",
+    "electron": "^8.2.5",
     "gulp": "^4.0.2",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-typescript": "^6.0.0-alpha.1",
