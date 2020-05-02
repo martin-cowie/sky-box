@@ -1,32 +1,33 @@
 {
   "name": "sky-box",
   "version": "1.0.0",
-  "description": "",
-  "config": {
-    "outDir": "build"
-  },
+  "description": "A GUI for your Sky Plus box",
   "main": "main.js",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/martin-cowie/sky-box"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "electron ./$npm_package_config_outDir/",
-    "prebuild": "rm -rf ./$npm_package_config_outDir",
-    "build": "tsc",
-    "postbuild": "cp -f index.html package.json ./$npm_package_config_outDir"
+    "start": "electron ./build",
+    "build": "gulp"
   },
   "keywords": [],
-  "author": "",
+  "author": "Martin Cowie",
   "license": "ISC",
   "dependencies": {
     "axios": "^0.19.2",
     "moment": "^2.24.0",
     "node-ssdp": "^4.0.0",
-    "typeof-arguments": "^5.1.1",
     "xmldom": "^0.3.0",
     "xpath": "0.0.27"
   },
   "devDependencies": {
     "@types/xmldom": "^0.1.29",
+    "del": "^5.1.0",
     "electron": "^8.2.0",
+    "gulp": "^4.0.2",
+    "gulp-sourcemaps": "^2.6.5",
+    "gulp-typescript": "^6.0.0-alpha.1",
     "typescript": "^3.8.3"
   }
 }
