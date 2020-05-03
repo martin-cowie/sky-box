@@ -53,22 +53,30 @@ export class ItemTableController {
                 this.doSelectionChange(items);
             });
 
+
             window.addEventListener("keydown", (event) => {
-            switch (event.key) {
-                case 'Escape':
-                    console.log(`Escape pressed`);
-                    this.selectionModel.clear();
-                    break;
+                console.debug(`focused on ${document.activeElement?.tagName}`);
+                               
+                // 'BODY' is the default focus - direct they keys to the item table
+                if (document.activeElement?.tagName === 'BODY') {
+                    console.debug(`Focussed on ${this.constructor.name}`);
+                    switch (event.key) {                
+                        case 'Escape':
+                            console.log(`Escape pressed`);
+                            this.selectionModel.clear();
+                            break;
+        
+                        case 'Delete':
+                        case 'Backspace':
+                            console.log(`Delete pressed`);
+                            this.doDelete();
+                            break;
+        
+                        case 'Enter':
+                            this.doPlay();
+                    }
+                }
 
-                case 'Delete':
-                case 'Backspace':
-                    console.log(`Delete pressed`);
-                    this.doDelete();
-                    break;
-
-                case 'Enter':
-                    this.doPlay();
-            }
         });
     }
 
