@@ -62,48 +62,48 @@ export class ItemSelectionModel extends EventEmitter {
 
 
     private handleClick(ev: MouseEvent) {
-        const tobdyElem = (ev.target as HTMLElement).closest('tbody') as HTMLTableSectionElement
-        if (!tobdyElem) {
+        const tbodyElem = (ev.target as HTMLElement).closest('tbody') as HTMLTableSectionElement
+        if (!tbodyElem) {
             // Not an error - a click on the tfoot or thead
             return;
         }
 
-        console.debug(`Selected tbody: `, tobdyElem);
+        console.debug(`Selected tbody: `, tbodyElem);
 
         if (ev.shiftKey) {
             // Extend the selection onwards from the last
             if(this.model.length) {
                 const lastSelected = this.model[this.model.length -1];
-                const path = this.findPathBetween(lastSelected, tobdyElem).filter(rowElem => !this.model.includes(rowElem));
+                const path = this.findPathBetween(lastSelected, tbodyElem).filter(rowElem => !this.model.includes(rowElem));
 
                 console.log(`Found path of ${path.length} elements, to add to model`);
                 path.forEach(elem => elem.classList.add(SELECTED_CLASS));
                 this.model.push(...path);
             } else {
                 // The same as a single simple click
-                tobdyElem.classList.add(SELECTED_CLASS);
-                this.model = [tobdyElem];
+                tbodyElem.classList.add(SELECTED_CLASS);
+                this.model = [tbodyElem];
             }
         } else if (ev.metaKey || ev.ctrlKey) {
             //Add/Remove this to the selection
-            if (this.model.includes(tobdyElem)) {
-                const i = this.model.indexOf(tobdyElem);
+            if (this.model.includes(tbodyElem)) {
+                const i = this.model.indexOf(tbodyElem);
                 this.model.splice(i, 1);
 
-                tobdyElem.classList.remove(SELECTED_CLASS);
+                tbodyElem.classList.remove(SELECTED_CLASS);
             } else {
-                this.model.push(tobdyElem);
-                tobdyElem.classList.add(SELECTED_CLASS);
+                this.model.push(tbodyElem);
+                tbodyElem.classList.add(SELECTED_CLASS);
             }
         } else {
             // A single selected row
 
             // Clear any existing selected rows
             this.model.forEach(trElem => trElem.classList.remove(SELECTED_CLASS));
-            tobdyElem.classList.add(SELECTED_CLASS);
+            tbodyElem.classList.add(SELECTED_CLASS);
 
             // Set the new state
-            this.model = [tobdyElem];
+            this.model = [tbodyElem];
         }
         this.doSelectionChange();
     }
