@@ -52,7 +52,9 @@ export class ItemTableController {
             this.selectionModel.on('selection', (items: Item[]) => {
                 this.doSelectionChange(items);
             });
-
+            this.selectionModel.on('dblclick', (item: Item) => {
+                this.doPlay(item);
+            });
 
             window.addEventListener("keydown", (event) => {
                 console.debug(`focused on ${document.activeElement?.tagName}`);
@@ -73,7 +75,10 @@ export class ItemTableController {
                             break;
 
                         case 'Enter':
-                            this.doPlay();
+                            if (this.selectedItems.length == 1) {
+                                this.doPlay(this.selectedItems[0]);
+                            }
+                            break;
                     }
                 }
 
@@ -192,13 +197,9 @@ export class ItemTableController {
         }
     }
 
-    private doPlay(): void {
-        if (this.selectedItems.length != 1) {
-            return;
-        }
-
-        if (window.confirm(`Play \"${this.selectedItems[0].title}\"?`)) {
-            this.skyBox.play(this.selectedItems[0]);
+    private doPlay(item: Item): void {
+        if (window.confirm(`Play \"${item.title}\"?`)) {
+            this.skyBox.play(item);
         }
 
     }
