@@ -2,11 +2,15 @@ import {SkyFinder} from './SkyFinder'
 import {SkyBox} from './SkyBox';
 import {ItemTableController} from './ItemTableController';
 import {ipcRenderer, remote}  from 'electron';
+import { ProgressController } from './ProgressController';
+
+const progressController = new ProgressController(document.getElementById('progressBar') as HTMLDivElement);
+
 
 async function handleFoundSkyBox(skyBox: SkyBox) {
     document.title = skyBox.toString();
 
-    const tableController = new ItemTableController(skyBox,
+    const tableController = new ItemTableController(skyBox, progressController,
         document.getElementById("itemTable") as HTMLTableElement,
         document.getElementById("summary") as HTMLDivElement,
         document.getElementById('findControls') as HTMLElement,
@@ -35,6 +39,7 @@ if (args.length > 2) {
     SkyBox.fromTestData(filename).then(handleFoundSkyBox);
 } else {
     const finder = new SkyFinder();
+    progressController.setSearching(true);
     finder.on('found', handleFoundSkyBox);
     finder.find();
 }

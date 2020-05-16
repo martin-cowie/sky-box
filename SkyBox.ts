@@ -32,12 +32,13 @@ function fetchControlURL(location: string, xpath: string): Promise<URL> {
     });
 }
 
+export type ProgressHandler = (completed: number, total: number) => void;
 
 /**
  * Encapsulate SkyPlus (a.k.a. 'SkyBox') functionality.
  */
 export interface SkyBox {
-    fetchAllItems(): Promise<Item[]>;
+    fetchAllItems(progressHandler: ProgressHandler): Promise<Item[]>;
 
     deleteItems(items: Item[]): Promise<void>;
 
@@ -86,7 +87,7 @@ class SkyBoxTestImpl implements SkyBox {
         return this.filename;
     }
 
-    async fetchAllItems(): Promise<Item[]> {
+    async fetchAllItems(progressHandler: ProgressHandler): Promise<Item[]> {
         return this.items;
     }
 
@@ -229,18 +230,20 @@ class SkyBoxImpl implements SkyBox {
     /**
      * @returns Array<Item> from this SkyBox
      */
-    async fetchAllItems(): Promise<Item[]> {
+    async fetchAllItems(progressHandler: ProgressHandler): Promise<Item[]> {
         console.debug(`fetchAllItems(${this.browseURL.toString()})`);
 
         const result: (Item|null)[] = [];
         const [items, totalItems] = await this.fetchItems(0);
         result.push(...items);
         console.debug(`Query matches total of ${totalItems}, response contains ${items.length} items`);
+        progressHandler(0, totalItems);
 
         while(result.length < totalItems) {
             const [moreItems,] = await this.fetchItems(result.length);
             result.push(...moreItems);
             console.log(`${result.length}/${totalItems}`);
+            progressHandler(result.length, totalItems);
         }
 
         // Remove null items (items that haven't been recorded yet)

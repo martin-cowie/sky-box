@@ -4,6 +4,7 @@ import moment from 'moment';
 import {SkyBox} from './SkyBox';
 import {Item, ItemComparator} from './Item';
 import {ItemSelectionModel} from './ItemSelectionModel';
+import { ProgressController } from './ProgressController';
 
 declare type ItemFilter = (item: Item) => boolean;
 
@@ -34,6 +35,7 @@ export class ItemTableController {
 
     constructor(
         private readonly skyBox: SkyBox,
+        private readonly progressController: ProgressController,
         private readonly table: HTMLTableElement,
         private readonly summaryElem: HTMLElement,
         private readonly findElem: HTMLElement,
@@ -52,7 +54,6 @@ export class ItemTableController {
             this.selectionModel.on('selection', (items: Item[]) => {
                 this.doSelectionChange(items);
             });
-
 
             window.addEventListener("keydown", (event) => {
                 console.debug(`focused on ${document.activeElement?.tagName}`);
@@ -81,7 +82,10 @@ export class ItemTableController {
     }
 
     public async refresh(): Promise<void> {
-        this.items = await this.skyBox.fetchAllItems();
+        this.items = await this.skyBox.fetchAllItems((completed: number, total: number) => {
+            this.progressController.setProgress(completed, total);
+        });
+        this.progressController.setSearching(false);
         this.draw();
     }
 
