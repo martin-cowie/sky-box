@@ -54,27 +54,33 @@ export class ItemTableController {
             this.selectionModel.on('selection', (items: Item[]) => {
                 this.doSelectionChange(items);
             });
+            this.selectionModel.on('dblclick', (item: Item) => {
+                this.doPlay(item);
+            });
 
             window.addEventListener("keydown", (event) => {
                 console.debug(`focused on ${document.activeElement?.tagName}`);
-                               
+
                 // 'BODY' is the default focus - direct they keys to the item table
                 if (document.activeElement?.tagName === 'BODY') {
                     console.debug(`Focussed on ${this.constructor.name}`);
-                    switch (event.key) {                
+                    switch (event.key) {
                         case 'Escape':
                             console.log(`Escape pressed`);
                             this.selectionModel.clear();
                             break;
-        
+
                         case 'Delete':
                         case 'Backspace':
                             console.log(`Delete pressed`);
                             this.doDelete();
                             break;
-        
+
                         case 'Enter':
-                            this.doPlay();
+                            if (this.selectedItems.length == 1) {
+                                this.doPlay(this.selectedItems[0]);
+                            }
+                            break;
                     }
                 }
 
@@ -196,12 +202,11 @@ export class ItemTableController {
         }
     }
 
-    private doPlay(): void {
-        if (this.selectedItems.length != 1) {
-            return;
+    private doPlay(item: Item): void {
+        if (window.confirm(`Play \"${item.title}\"?`)) {
+            this.skyBox.play(item);
         }
 
-        this.skyBox.play(this.selectedItems[0]);
     }
 
     private doSelectionChange(items: Item[]): void {

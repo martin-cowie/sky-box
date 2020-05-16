@@ -13,6 +13,7 @@ export class ItemSelectionModel extends EventEmitter {
     private constructor(private tableElem: HTMLTableElement) {
         super();
         this.tableElem.onclick = (ev) => this.handleClick(ev);
+        this.tableElem.ondblclick = (ev) => this.handleDoubleClick(ev);
     }
 
     static from(tableElem: HTMLTableElement) {
@@ -60,6 +61,17 @@ export class ItemSelectionModel extends EventEmitter {
         this.emit('selection', this.model.map((t: any) => t.item));
     }
 
+    private handleDoubleClick(ev: MouseEvent) {
+        const tbodyElem = (ev.target as HTMLElement).closest('tbody') as HTMLTableSectionElement
+        if (!tbodyElem) {
+            // Not an error - a click on the tfoot or thead
+            return;
+        }
+
+        console.debug(`Double clicked tbody: `, tbodyElem);
+
+        this.emit('dblclick', (tbodyElem as any).item );
+    }
 
     private handleClick(ev: MouseEvent) {
         const tbodyElem = (ev.target as HTMLElement).closest('tbody') as HTMLTableSectionElement
