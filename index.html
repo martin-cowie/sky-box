@@ -20,6 +20,10 @@
         cursor: default;
       }
 
+      text {
+         fill: var(--main-text-color);
+      }
+
       #itemTable {
         width: 100%;
         background-color:  rgb(13,27,65);
@@ -98,12 +102,27 @@
         transform: translate(-50%, -50%);
       }
 
+      .line {
+        fill:none;
+        stroke: blue;
+        stroke-width:5;
+        stroke-linecap:butt;
+        stroke-linejoin:round;
+        stroke-miterlimit:4;
+        stroke-dasharray:none
+    }
+
+
     </style>
   </head>
   <body>
 
     <div class="centered" id="progressBar">
-        Stuff goes in the middle.
+        <svg width="400" height="400">
+            <circle cx="50%" cy="50%" r="150"
+                class="line"/>
+            <text x="50%" y="50%" text-anchor="middle">Searching</text>
+        </svg>
     </div>
 
     <div class="container">
