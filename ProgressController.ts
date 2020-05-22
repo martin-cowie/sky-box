@@ -40,7 +40,9 @@ export class ProgressController {
 
 
         // Create spinner
-        const [cx, cy] = [this.progressCircle.cx.baseVal.value, this.progressCircle.cy.baseVal.value];
+        const cx = this.progressCircle.cx.baseVal.value;
+        const cy = this.progressCircle.cy.baseVal.value;
+
         this.animElem = document.createElementNS('http://www.w3.org/2000/svg', 'animateTransform') as SVGAnimateTransformElement;
         this.animElem.setAttribute("attributeName", "transform");
         this.animElem.setAttribute("type", "rotate");
