@@ -38,7 +38,7 @@ export class ProgressController {
         this.text = rootDiv.getElementsByTagName('text')[0] as SVGTextElement;
         this.progressCircle = rootDiv.getElementsByTagName('circle')[0] as SVGCircleElement;
 
-
+        this.progressCircle.getBoundingClientRect();
         // Create spinner
         const cx = this.progressCircle.cx.baseVal.value;
         const cy = this.progressCircle.cy.baseVal.value;
