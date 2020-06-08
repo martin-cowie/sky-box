@@ -229,6 +229,7 @@ class SkyBoxImpl implements SkyBox {
 
     /**
      * @returns Array<Item> from this SkyBox
+     * @argument progressHandler a callback, which is delivered progress updates.
      */
     async fetchAllItems(progressHandler: ProgressHandler): Promise<Item[]> {
         console.debug(`fetchAllItems(${this.browseURL.toString()})`);

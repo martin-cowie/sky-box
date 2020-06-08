@@ -20,11 +20,11 @@ function mapServiceType(genre: number): string {
     switch(genre) {
         case 16: return 'Music';
         case 11: return 'Documentary';
-        case 3: return 'Entertainment';
         case 8: return 'Lifestyle';
         case 7: return 'Sport';
         case 6: return 'Movies';
         case 5: return 'News';
+        case 3: return 'Entertainment';
         case 2: return 'Kids';
         default: return String(genre);
     }

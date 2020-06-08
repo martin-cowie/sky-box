@@ -61,7 +61,6 @@ export class SkyFinder extends EventEmitter {
         this.doSearch();
 
         // Periodically re-poll
-        //TODO: it's unclear if this necessary
         setInterval(() => {
             this.doSearch();
         }, 10_000);
@@ -75,8 +74,8 @@ export class SkyFinder extends EventEmitter {
 
         // Get/Create the matching record of URNs & populate it
         const urns: SkyBoxURNs = (!this.rawSkyBoxURNs.hasOwnProperty(rinfo.address)) ?
-        this.rawSkyBoxURNs[rinfo.address] = new SkyBoxURNs() :
-        this.rawSkyBoxURNs[rinfo.address];
+            this.rawSkyBoxURNs[rinfo.address] = new SkyBoxURNs() :
+            this.rawSkyBoxURNs[rinfo.address];
 
         if (isFull(urns)) {
             return;

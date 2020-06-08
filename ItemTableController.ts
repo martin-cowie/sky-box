@@ -93,6 +93,8 @@ export class ItemTableController {
         });
         this.progressController.setSearching(false);
         this.draw();
+
+        this.findLikelyDuplicates(this.items);
     }
 
     public draw(): void {
@@ -219,6 +221,30 @@ export class ItemTableController {
             const totalDuration = moment.duration(items.reduce((acc, item) => acc + item.recordedDuration, 0), 'seconds');
             this.summaryElem.innerText = `Selected ${totalDuration.humanize()} of recordings`;
         }
+    }
+
+    private findLikelyDuplicates(items: Item[]) {
+
+        function itemsForKey(map: any, key: string): Item[] {
+            if (map.hasOwnProperty(key)) {
+                return map[key];
+            }
+            const items: Item[] = [];
+            map[key] = items;
+            return items;
+        }
+
+        // Use the title & description as a key
+        const itemsByKey = items.reduce((acc, item) => {
+            const key = `${item.title}/${item.description}`;
+            const items = itemsForKey(acc, key);
+            items.push(item);
+            return acc;
+        }, {}) as {[k: string]: Item[]};
+
+        const dups = Object.fromEntries(Object.entries(itemsByKey).filter(pair => pair[1].length > 1));
+
+        console.log("Likley duplicates", dups);
     }
 
 }
