@@ -24,7 +24,7 @@
   "devDependencies": {
     "@types/xmldom": "^0.1.29",
     "del": "^5.1.0",
-    "electron": "^9.0.4",
+    "electron": "^15.5.5",
     "gulp": "^4.0.2",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-typescript": "^6.0.0-alpha.1",
